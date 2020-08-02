@@ -1,23 +1,29 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Threading.Tasks;
-using WebApi.Infra;
+using WebApi.Aplication;
+using WebApi.Domain;
+using WebApi.Security;
 
 namespace WebApi.Controllers
 {
     [Route("v{version:apiVersion}/[controller]")]
     [ApiController]
-    //  [Authorize(Roles = Policies.Admin)]
+    [Authorize()]
     public class ProductsController : ControllerBase
     {
         private readonly IProductRepository _productRepository;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IMediator _mediator;
 
-        public ProductsController(IProductRepository productRepository, IUnitOfWork unitOfWork)
+        public ProductsController(
+            IProductRepository productRepository, IUnitOfWork unitOfWork, IMediator mediator)
         {
             _productRepository = productRepository;
             _unitOfWork = unitOfWork;
+            _mediator = mediator;
         }
         [HttpPost]
         public async Task<IActionResult> PostAsync([FromBody] ProductDTO product)
@@ -41,17 +47,11 @@ namespace WebApi.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Get()
+        public async Task<IActionResult> Get([FromQuery] ProductQueryInDTO query)
         {
-            var products = await _productRepository.List();
-            return Ok(products);
+            var productsPage = await _mediator.Send(query);
+            return Ok(productsPage);
         }
-    }
-
-    public class ProductRepository : RepositoryBase<Product>, IProductRepository
-    {
-        public ProductRepository(IUnitOfWork unitOfWork, TianaJoiasContextDB context) : base(unitOfWork, context)
-        { }
     }
 
     public class ProductDTO
@@ -66,7 +66,6 @@ namespace WebApi.Controllers
         public int[] Typology { get; set; }
         public int[] Color { get; set; }
         public int[] Category { get; set; }
-        public int[] SubCategory { get; set; }
         public int[] Thematic { get; set; }
     }
 }

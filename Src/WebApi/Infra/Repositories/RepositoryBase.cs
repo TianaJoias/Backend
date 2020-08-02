@@ -4,8 +4,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
+using WebApi.Domain;
 
-namespace WebApi.Infra
+namespace WebApi.Infra.Repositories
 {
     public abstract class RepositoryBase<T> : IRepository<T> where T : class, IEntity
     {
@@ -52,6 +53,26 @@ namespace WebApi.Infra
         public Task Update(T entity)
         {
             return _unitOfWork.Update(entity);
+        }
+        public async Task<PagedResult<T>> GetPaged(Expression<Func<T, bool>> filter,
+                                        int page, int pageSize, Func<IQueryable<T>,IOrderedQueryable<T>> ordering = null)
+        {
+            var query = _context.Set<T>().Where(filter);
+            var result = new PagedResult<T>
+            {
+                CurrentPage = page,
+                PageSize = pageSize,
+                RowCount = await query.CountAsync()
+            };
+
+            query = ordering == null ? query : ordering(query);
+            var pageCount = (double)result.RowCount / pageSize;
+            result.PageCount = (int)Math.Ceiling(pageCount);
+
+
+            var skip = (page - 1) * pageSize;
+            result.Results = await query.Skip(skip).Take(pageSize).ToListAsync();
+            return result;
         }
     }
 }

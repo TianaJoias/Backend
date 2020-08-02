@@ -1,16 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using WebApi.Infra;
 
-namespace WebApi.Controllers
+namespace WebApi.Domain
 {
-    public interface IProductRepository : IRepository<Product>
-    {
-    }
-
     public class Product : BaseEntity
     {
-        public Guid Id { get; set; }
         public string BarCode { get; set; }
         public string Description { get; set; }
         public decimal CostValue { get; set; }

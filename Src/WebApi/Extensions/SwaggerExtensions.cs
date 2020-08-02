@@ -10,10 +10,9 @@ using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Swagger;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using Swashbuckle.AspNetCore.SwaggerUI;
-using WebApi;
 using WebApi.Filters;
 
-namespace Api.Extensions
+namespace WebApi.Extensions
 {
     public static class SwaggerExtensions
     {
