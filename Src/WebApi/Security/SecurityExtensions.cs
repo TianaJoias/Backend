@@ -24,32 +24,23 @@ namespace WebApi.Security
             }).AddJwtBearer(options =>
             {
                 var provider = services.BuildServiceProvider();
+                var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(TokenConstants.EncryptingKey));
                 var validationParams = new TokenValidationParameters()
                 {
                     ValidateAudience = true,
                     ValidateIssuer = true,
                     ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(TokenConstants.key)),
                     ValidIssuer = TokenConstants.Issuer,
                     ValidAudience = TokenConstants.Audience,
-                    ClockSkew = TimeSpan.Zero
+                    ClockSkew = TimeSpan.Zero,
+                    RoleClaimType = "role",
+                    NameClaimType = "name",
+                    TokenDecryptionKey = securityKey,
                 };
                 var events = new JwtBearerEvents()
                 {
-                    // invoked when the token validation fails
-                    OnAuthenticationFailed = (context) =>
-                    {
-                        Console.WriteLine(context.Exception);
-                        return Task.CompletedTask;
-                    },
-
-                    // invoked when a request is received
-                    OnMessageReceived = (context) =>
-                    {
-                        return Task.CompletedTask;
-                    },
-
-                    // invoked when token is validated
                     OnTokenValidated = (context) =>
                     {
                         //var security = arg.HttpContext.RequestServices.GetService<ISecurityService>();
@@ -63,17 +54,11 @@ namespace WebApi.Security
                         return Task.CompletedTask;
                     }
                 };
-                //var fileprovider = provider.GetService<IFileProvider>();
-                //var file = fileprovider.GetFileInfo(signingConfigurations.PfxFile);
                 options.Events = events;
                 options.TokenValidationParameters = validationParams;
                 options.SaveToken = true;
             });
-            services.AddAuthorization(config =>
-            {
-                //config.AddPolicy("ShouldContainRole",
-                //    options => options.RequireClaim(ClaimTypes.Role));
-            });
+            services.AddAuthorization();
             return services;
         }
     }

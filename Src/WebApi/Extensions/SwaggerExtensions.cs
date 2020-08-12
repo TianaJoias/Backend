@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using Microsoft.AspNetCore.Builder;
@@ -14,6 +15,22 @@ using WebApi.Filters;
 
 namespace WebApi.Extensions
 {
+    public class AuthenticationRequirementsOperationFilter : IOperationFilter
+    {
+        public void Apply(OpenApiOperation operation, OperationFilterContext context)
+        {
+            if (operation.Security == null)
+                operation.Security = new List<OpenApiSecurityRequirement>();
+
+
+            var scheme = new OpenApiSecurityScheme { Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" } };
+            operation.Security.Add(new OpenApiSecurityRequirement
+            {
+                [scheme] = new List<string>()
+            });
+        }
+    }
+
     public static class SwaggerExtensions
     {
         public static IServiceCollection AddSwagger(this IServiceCollection services)
@@ -33,6 +50,7 @@ namespace WebApi.Extensions
             options.OperationFilter<NotFoundFilter>();
             // integrate xml comments
             options.IncludeXmlComments(XmlCommentsFilePath);
+
             options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {
                 In = ParameterLocation.Header,
@@ -40,7 +58,7 @@ namespace WebApi.Extensions
                 Name = "Authorization",
                 BearerFormat = "JWT",
                 Scheme = "Bearer",
-                Type = SecuritySchemeType.Http,
+                Type = SecuritySchemeType.ApiKey,
             });
 
             var bearer = new OpenApiSecurityScheme
@@ -54,6 +72,7 @@ namespace WebApi.Extensions
 
             var security = new OpenApiSecurityRequirement { { bearer, Array.Empty<string>() } };
 
+            options.OperationFilter<AuthenticationRequirementsOperationFilter>();
             options.AddSecurityRequirement(security);
         }
 

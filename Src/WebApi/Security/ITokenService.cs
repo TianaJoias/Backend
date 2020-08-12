@@ -1,10 +1,12 @@
 ﻿using System.Collections.Generic;
+using System.Security.Principal;
 
 namespace WebApi.Security
 {
     public interface ITokenService
     {
-        public string CreateToken(IDictionary<string, string> claims);
+        public IPublicTokenBuilder CreateToken();
+        public IPrincipal GetPrincipal(string token);
     }
 }
 

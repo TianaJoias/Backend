@@ -32,7 +32,7 @@ namespace WebApi.Domain
         public int FirstRowOnPage
         {
 
-            get { return (CurrentPage - 1) * PageSize + 1; }
+            get { return CurrentPage * PageSize + 1; }
         }
 
         public int LastRowOnPage

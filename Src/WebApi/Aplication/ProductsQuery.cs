@@ -29,8 +29,23 @@ namespace WebApi.Aplication
             return result.Adapt<ProductsQueryOutDTO>();
         }
     }
+    public class ProductsQueryById : IQuery<ProductQueryByIdRequest, ProductDTO>
+    {
+        private readonly IProductRepository _productRepository;
 
-    public static class OrderByHelper
+        public ProductsQueryById(IProductRepository productRepository)
+        {
+            _productRepository = productRepository;
+        }
+
+        public async Task<ProductDTO> Handle(ProductQueryByIdRequest request, CancellationToken cancellationToken)
+        {
+            var result = await _productRepository.GetById(request.Id);
+            return result.Adapt<ProductDTO>();
+        }
+    }
+
+        public static class OrderByHelper
     {
         public static Func<IQueryable<T>, IOrderedQueryable<T>> BuildOrderBy<T>(this QueryInBase request, Expression<Func<T, object>> defaultOrdeBy)
         {
@@ -41,16 +56,19 @@ namespace WebApi.Aplication
         }
         private static PropertyInfo GetPropertyInfo<TSource>(string propertyName, Expression<Func<TSource, object>> defaultProperty)
         {
-            var entityType = typeof(TSource);
-            // Create x=>x.PropName
+            if (String.IsNullOrWhiteSpace(propertyName))
+                return GetPropertyInfo(defaultProperty); var entityType = typeof(TSource);
+
             var propertyInfo = entityType.GetProperty(propertyName);
+            if (propertyInfo is null)
+                return GetPropertyInfo(defaultProperty);
             if (propertyInfo.DeclaringType != entityType)
             {
                 propertyInfo = propertyInfo.DeclaringType.GetProperty(propertyName);
             }
 
             // If we try to order by a property that does not exist in the object return the list
-            return propertyInfo ?? GetPropertyInfo(defaultProperty);
+            return propertyInfo;
         }
         private static PropertyInfo GetPropertyInfo<TPropertySource>
     (Expression<Func<TPropertySource, object>> expression)
@@ -110,11 +128,13 @@ namespace WebApi.Aplication
             return (IOrderedQueryable<TSource>)genericMethod.Invoke(genericMethod, new object[] { query, selector });
         }
     }
+
+
     public enum Ordering { Asc, Desc }
     public abstract class QueryInBase
     {
-        public int Page { get; set; }
-        public int PageSize { get; set; }
+        public int Page { get; set; } = 0;
+        public int PageSize { get; set; } = 5;
         public string SearchTerm { get; set; }
         public string OrderBy { get; set; }
         public Ordering Order { get; set; }
@@ -124,12 +144,16 @@ namespace WebApi.Aplication
     public class ProductQueryInDTO : QueryInBase, IRequest<ProductsQueryOutDTO>
     {
     }
+    public class ProductQueryByIdRequest : IRequest<ProductDTO>
+    {
+        public Guid Id { get; set; }
+    }
 
     public class ProductsQueryOutDTO : PagedResult<ProductDTO>
     {
     }
 
-    public class ProductDTO: Product
+    public class ProductDTO : Product
     {
     }
 

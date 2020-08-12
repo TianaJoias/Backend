@@ -1,33 +1,46 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
 using System.Security.Claims;
+using System.Security.Principal;
+using System.Text;
+using Microsoft.IdentityModel.Tokens;
 
 namespace WebApi.Security
 {
     public class TokenService : ITokenService
     {
-        public string CreateToken(IDictionary<string, string> claimsMap)
+        public IPublicTokenBuilder CreateToken()
         {
-            var claims = new List<Claim>
+            return TokenBuilder.Given()
+               .AddAudience(TokenConstants.Audience)
+               .AddIssuer(TokenConstants.Issuer)
+               .AddExpiry(TokenConstants.ExpiryInMinutes)
+               .AddKey(TokenConstants.key)
+               .AddEncryptingKey(TokenConstants.EncryptingKey)
+               .AddClaim(new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString("N")));
+        }
+
+        public IPrincipal GetPrincipal(string token)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(TokenConstants.EncryptingKey));
+            var validationParameters = new TokenValidationParameters()
             {
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString("N"))
+                ValidateAudience = false,
+                ValidateIssuer = false,
+                ValidateLifetime = false,
+                ValidateIssuerSigningKey = false,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(TokenConstants.key)),
+                ValidIssuer = TokenConstants.Issuer,
+                ValidAudience = TokenConstants.Audience,
+                ClockSkew = TimeSpan.Zero,
+                RoleClaimType = "role",
+                NameClaimType = "name",
+                TokenDecryptionKey = securityKey,
             };
-            foreach (var claim in claimsMap)
-            {
-                claims.Add(new Claim(claim.Key, claim.Value));
-            }
-
-            JwtSecurityToken token = new TokenBuilder()
-                .AddAudience(TokenConstants.Audience)
-                .AddIssuer(TokenConstants.Issuer)
-                .AddExpiry(TokenConstants.ExpiryInMinutes)
-                .AddKey(TokenConstants.key)
-                .AddClaims(claims)
-                .Build();
-
-            return new JwtSecurityTokenHandler()
-                .WriteToken(token);
+            return tokenHandler.ValidateToken(token, validationParameters, out _);
         }
     }
 }

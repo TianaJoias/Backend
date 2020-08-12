@@ -19,6 +19,11 @@ namespace WebApi.Infra.Repositories
             _context = context;
         }
 
+        public virtual IQueryable<T> Load(IQueryable<T> query)
+        {
+            return query;
+        }
+
         public Task<T> Add(T entity)
         {
             _unitOfWork.Add(entity);
@@ -32,18 +37,18 @@ namespace WebApi.Infra.Repositories
 
         public async Task<T> GetById(Guid id)
         {
-            return await _context.Set<T>().FindAsync(id);
+            return await Load(_context.Set<T>()).FirstOrDefaultAsync(it=> it.Id == id);
         }
 
         public async Task<List<T>> List()
         {
-            return await _context.Set<T>().ToListAsync();
+            return await Load(_context.Set<T>()).ToListAsync();
         }
 
         public async Task<List<T>> List(Expression<Func<T, bool>> filter)
         {
 
-            return await _context.Set<T>().Where(filter).ToListAsync();
+            return await Load(_context.Set<T>()).Where(filter).ToListAsync();
         }
         public async Task<bool> Exists(Expression<Func<T, bool>> filter)
         {
@@ -55,7 +60,7 @@ namespace WebApi.Infra.Repositories
             return _unitOfWork.Update(entity);
         }
         public async Task<PagedResult<T>> GetPaged(Expression<Func<T, bool>> filter,
-                                        int page, int pageSize, Func<IQueryable<T>,IOrderedQueryable<T>> ordering = null)
+                                        int page, int pageSize, Func<IQueryable<T>, IOrderedQueryable<T>> ordering = null)
         {
             var query = _context.Set<T>().Where(filter);
             var result = new PagedResult<T>
@@ -70,8 +75,8 @@ namespace WebApi.Infra.Repositories
             result.PageCount = (int)Math.Ceiling(pageCount);
 
 
-            var skip = (page - 1) * pageSize;
-            result.Results = await query.Skip(skip).Take(pageSize).ToListAsync();
+            var skip = page * pageSize;
+            result.Results = await Load(query.Skip(skip).Take(pageSize)).ToListAsync();
             return result;
         }
     }

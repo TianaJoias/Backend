@@ -13,6 +13,8 @@ namespace WebApi.Infra
             var connectionString = Configuration.GetConnectionString(TianaJoiasContextDB.SqlLiteConnectionName);
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<IProductRepository, ProductRepository>();
+            services.AddScoped<IBatchRepository, BatchRepository>();
+            services.AddScoped<ISupplierRepository, SupplierRepository>();
             services.AddDbContextPool<TianaJoiasContextDB>(options => options.UseSqlite(connectionString));
             return services;
         }
