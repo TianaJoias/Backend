@@ -1,8 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
-using WebApi.Domain;
-using WebApi.Infra.EFMappers;
+﻿using Domain;
+using Infra.EF.EFMappers;
+using Microsoft.EntityFrameworkCore;
 
-namespace WebApi.Infra
+namespace Infra.EF
 {
     public sealed class TianaJoiasContextDB : DbContext
     {

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace WebApi.Domain
+namespace Domain
 {
     public interface IEntity
     {

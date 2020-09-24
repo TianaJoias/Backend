@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-namespace WebApi.Domain
+namespace Domain
 {
     public interface IUnitOfWork
     {

@@ -23,21 +23,20 @@ namespace WebApi.Security
                 authOptions.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
             }).AddJwtBearer(options =>
             {
-                var provider = services.BuildServiceProvider();
-                var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(TokenConstants.EncryptingKey));
+                // var provider = services.BuildServiceProvider();
                 var validationParams = new TokenValidationParameters()
                 {
                     ValidateAudience = true,
                     ValidateIssuer = true,
                     ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(TokenConstants.key)),
+                    IssuerSigningKey = TokenConstants.IssuerSecurityKey,
                     ValidIssuer = TokenConstants.Issuer,
                     ValidAudience = TokenConstants.Audience,
                     ClockSkew = TimeSpan.Zero,
                     RoleClaimType = "role",
                     NameClaimType = "name",
-                    TokenDecryptionKey = securityKey,
+                    TokenDecryptionKey = TokenConstants.EncryptionSecurityKey,
                 };
                 var events = new JwtBearerEvents()
                 {

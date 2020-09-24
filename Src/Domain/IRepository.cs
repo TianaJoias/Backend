@@ -4,7 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
-namespace WebApi.Domain
+namespace Domain
 {
     public interface IRepository<T> where T : IEntity
     {

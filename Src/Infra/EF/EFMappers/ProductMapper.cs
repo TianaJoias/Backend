@@ -1,34 +1,43 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+using Domain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using WebApi.Domain;
 
-namespace WebApi.Infra.EFMappers
+namespace Infra.EF.EFMappers
 {
     internal class ProductMapper : EntityMapper<Product>
     {
         public override void Configure(EntityTypeBuilder<Product> builder)
         {
             base.Configure(builder);
-            var converter = new ValueConverter<IList<int>, string>(
-                v => string.Join(";", v),
-                v => (v ?? "").Split(";", StringSplitOptions.RemoveEmptyEntries).Select(val => int.Parse(val)).ToList());
+            //var converter = new ValueConverter<IList<int>, string>(
+            //    v => string.Join(";", v),
+            //    v => (v ?? "").Split(";".ToArray(), StringSplitOptions.RemoveEmptyEntries).Select(val => int.Parse(val)).ToList());
 
             builder.ToTable("Product");
             builder.Property(x => x.BarCode);
             builder.Property(x => x.Description);
-            builder.Property(x => x.Colors)
-                .HasConversion(converter);
-            builder.Property(x => x.Typologies)
-                .HasConversion(converter);
-            builder.Property(x => x.Thematics)
-                .HasConversion(converter);
-            builder.Property(x => x.Categories)
-                .HasConversion(converter);
+            builder.HasMany(x => x.Categories).WithOne(it => it.Product);
 
+        }
+    }
+
+    internal class CategoryMapper : IEntityTypeConfiguration<ProductCategory>
+    {
+        public void Configure(EntityTypeBuilder<ProductCategory> builder)
+        {
+            builder.ToTable("ProductCategory");
+            builder.HasKey(x => new { x.ProductId, x.TagId });
+        }
+    }
+
+    internal class TagMapper : EntityMapper<Tag>
+    {
+        public override void Configure(EntityTypeBuilder<Tag> builder)
+        {
+            base.Configure(builder);
+            builder.ToTable("Tags");
+            builder.Property(x => x.Name);
         }
     }
     internal class BatchMapper : EntityMapper<Batch>
@@ -45,7 +54,7 @@ namespace WebApi.Infra.EFMappers
             builder.Property(x => x.Date);
             builder.Property(x => x.SaleValue);
             builder.Property(x => x.CostValue);
-            builder.HasMany(x => x.Suppliers).WithOne();
+            builder.HasMany(x => x.Suppliers).WithMany(x => x.Batchs);
         }
     }
 

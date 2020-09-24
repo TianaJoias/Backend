@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
-using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -24,48 +21,57 @@ namespace WebApi.Controllers
     [ApiController]
     public class AuthenticationController : ControllerBase
     {
-        private readonly ITokenService tokenService;
+        private readonly ITokenService _tokenService;
 
         public AuthenticationController(ITokenService tokenService)
         {
-            this.tokenService = tokenService;
+            _tokenService = tokenService;
         }
 
-        [HttpPost("login"), ProducesResponseType(StatusCodes.Status200OK, Type = typeof(LoginDTO)), AllowAnonymous]
+        [HttpPost("login"), ProducesResponseType(StatusCodes.Status200OK), AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult Login([FromBody][Required] LoginDTO request)
         {
             if (request.GrantType == GranType.Password)
             {
-                if (request.Username.ToUpper().Trim() == "ADMIN" && request.Password == "#PWD123#")
+                if (request.Username.ToUpper().Trim() == "ADMIN" && request.Password == "ADMIN")
                 {
-                    var refreshToken = Guid.NewGuid();
-                    var token = tokenService.CreateToken()
-                        .AddRole(Policies.Admin)
-                        .AddSubject($"UserID:{Guid.NewGuid():N}")
-                        .AddCustomRole("RefreshToken", refreshToken.ToString("N"))
-                        .Build();
-                    return Ok(new { token, refreshToken = refreshToken.ToString("N") });
+                    var (token, refreshToken) = CreateToken();
+                    return Ok(new { token, refreshToken });
                 }
             }
+
             if (request.GrantType == GranType.RefreshToken)
             {
-                var principal = (tokenService.GetPrincipal(request.ExpiredToken) as ClaimsPrincipal);
-                var x = principal.Claims.First(it => it.Type == "RefreshToken");
-                if(x.Value == request.Token)
+                if (RefreshTokenIsValid(request))
                 {
-                    var refreshToken = Guid.NewGuid();
-                    var token = tokenService.CreateToken()
-                        .AddRole(Policies.Admin)
-                        .AddSubject($"UserID:{Guid.NewGuid():N}")
-                        .AddCustomRole("RefreshToken", refreshToken.ToString("N"))
-                        .Build();
-                    return Ok(new { token, refreshToken = refreshToken.ToString("N") });
+                    var (token, refreshToken) = CreateToken();
+                    return Ok(new { token, refreshToken });
                 }
-                return BadRequest("Refresh Token não implementado." + this.TraceId());
+                return BadRequest("Refresh Token não pertence a esse token." + this.TraceId());
             }
-                return BadRequest("Metodo Não implementado." + this.TraceId());
+
+            return BadRequest("Metodo Não implementado." + this.TraceId());
+        }
+
+        private bool RefreshTokenIsValid(LoginDTO request)
+        {
+            var principal = _tokenService.GetPrincipal(request.ExpiredToken) as ClaimsPrincipal;
+            var refreshTokenClaim = principal?.FindFirst("RefreshToken");
+            return refreshTokenClaim?.Value == request.Token;
+        }
+
+        private (string token, string refreshToken) CreateToken()
+        {
+            var refreshToken = Guid.NewGuid().ToString("N");
+            var userId = Guid.NewGuid().ToString();
+            var token = _tokenService.CreateToken()
+                .AddRole(Policies.Admin)
+                .AddSubject(userId)
+                .AddCustomRole("RefreshToken", refreshToken)
+                .Build();
+            return (token, refreshToken);
         }
     }
 }

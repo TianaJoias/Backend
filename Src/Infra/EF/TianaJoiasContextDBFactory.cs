@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
 
-namespace WebApi.Infra
+namespace Infra.EF
 {
     public class TianaJoiasContextDBFactory : IDesignTimeDbContextFactory<TianaJoiasContextDB>
     {

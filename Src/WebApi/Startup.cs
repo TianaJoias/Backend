@@ -9,23 +9,62 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using WebApi.Extensions;
-using WebApi.Infra;
 using WebApi.Queries;
 using WebApi.Security;
 using GraphQL.Server;
-using GraphQL.Types;
 using System.Security.Claims;
-using System.Collections.Generic;
-using System;
 using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore;
+using Infra.EF;
+using GraphQL.Types;
+using WebApi.Aplication;
+using Mapster;
+using Domain;
+using System;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using GraphQL.Validation;
+using GraphQL.Authorization;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using GraphQL.Server.Transports.AspNetCore;
+using System.Collections.Generic;
 
 namespace WebApi
 {
-    public class GraphQLUserContext : Dictionary<string, object>
+    public class GraphQLUserContext : Dictionary<string, object>, IProvideClaimsPrincipal
     {
         public ClaimsPrincipal User { get; set; }
     }
+    public static class GraphQLAuthExtensions
+    {
+        public static void AddGraphQLAuth(this IServiceCollection services, Action<AuthorizationSettings, IServiceProvider> configure)
+        {
+            services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            services.TryAddSingleton<IAuthorizationEvaluator, AuthorizationEvaluator>();
+            services.AddTransient<IValidationRule, AuthorizationValidationRule>();
 
+            services.TryAddTransient(s =>
+            {
+                var authSettings = new AuthorizationSettings();
+                configure(authSettings, s);
+                return authSettings;
+            });
+        }
+
+        public static void AddGraphQLAuth(this IServiceCollection services, Action<AuthorizationSettings> configure)
+        {
+            services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            services.TryAddSingleton<IAuthorizationEvaluator, AuthorizationEvaluator>();
+            services.AddTransient<IValidationRule, AuthorizationValidationRule>();
+
+            services.TryAddSingleton(s =>
+            {
+                var authSettings = new AuthorizationSettings();
+                configure(authSettings);
+                return authSettings;
+            });
+        }
+    }
     public class Startup
     {
         public Startup(IConfiguration configuration)
@@ -67,36 +106,44 @@ namespace WebApi
                 builder => builder.WithOrigins("http://mysite.com"));
             });
 
-            services.AddScoped<ProductQuery>();
-            services.AddScoped<ProductType>();
+            services.AddSingleton<ProductQuery>();
+            services.AddSingleton<TianaJoiasSchema>();
+            services.AddSingleton<ProductType>();
+            services.AddSingleton<ProductSortType>();
+            services.AddSingleton<ObjectGraphType<PagedResultType<Product, ProductType>>>();
+            services.AddSingleton<EnumerationGraphType<Sort>>();
+            services.AddGraphQLAuth((_, s) =>
+            {
+                _.AddPolicy("AdminPolicy", p => p.RequireClaim("role", "Admin"));
+            });
             services.AddHttpContextAccessor();
-
-            services.AddScoped<TianaJoiasSchema>();
-            services.AddGraphQL((provider, options) =>
+            services.AddGraphQL((options, provider) =>
             {
                 options.EnableMetrics = true;
-                options.ExposeExceptions = true;
+                //options.excep ExposeExceptions = true;
                 var logger = provider.GetRequiredService<ILogger<Startup>>();
+                options.NameConverter = new GraphQL.Conversion.CamelCaseNameConverter();
                 options.UnhandledExceptionDelegate = ctx => logger.LogError("{Error} occured", ctx.OriginalException.Message);
             })
-              //  .AddNewtonsoftJson()
-              .AddSystemTextJson()
-              .AddGraphTypes(typeof(TianaJoiasSchema), ServiceLifetime.Scoped)
-            //.AddNewtonsoftJson() // or use AddSystemTextJson for .NET Core 3+
-
-            .AddUserContextBuilder(httpContext => new GraphQLUserContext { User = httpContext.User })
+            .AddSystemTextJson()
+            .AddUserContextBuilder(context =>
+            {
+                return new GraphQLUserContext { User = context.User };
+            })
+            .AddGraphTypes(typeof(TianaJoiasSchema))
             .AddDataLoader();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env,
-            IApiVersionDescriptionProvider provider)
+            IApiVersionDescriptionProvider provider, TianaJoiasContextDB dataContext)
         {
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
 
+            var validationRules = app.ApplicationServices.GetServices<IValidationRule>();
             app.UseHttpsRedirection();
             app.UseCors("mypolicy");
             app.UseRouting();
@@ -111,6 +158,10 @@ namespace WebApi
                 endpoints.MapControllers();
             });
             app.UseVersionedSwagger(provider);
+            dataContext.Database.Migrate();
+            TypeAdapterConfig<ProductCategory, Guid>
+                .NewConfig()
+                .MapWith(orgin => orgin.TagId);
         }
     }
 }

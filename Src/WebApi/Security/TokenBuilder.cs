@@ -15,13 +15,13 @@ namespace WebApi.Security
         string Build();
     }
 
-    public class TokenBuilder: IPublicTokenBuilder
+    public class TokenBuilder : IPublicTokenBuilder
     {
         private string _issuer;
         private string _audience;
         private DateTime _expires;
         private SigningCredentials _credentials;
-        private SymmetricSecurityKey _key;
+        private SecurityKey _key;
         private List<Claim> _claims = new List<Claim>();
         private EncryptingCredentials _encryptingCredentials;
 
@@ -67,18 +67,16 @@ namespace WebApi.Security
             return this;
         }
 
-        public TokenBuilder AddKey(string key)
+        public TokenBuilder AddKey(SecurityKey key)
         {
-            _key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
-            _credentials = new SigningCredentials(_key,
-            SecurityAlgorithms.HmacSha256);
+            _key = key;// new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
+            _credentials = new SigningCredentials(_key, SecurityAlgorithms.HmacSha256);
             return this;
         }
 
-        public TokenBuilder AddEncryptingKey(string key)
+        public TokenBuilder AddEncryptingKey(SecurityKey key)
         {
-            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
-            _encryptingCredentials = new EncryptingCredentials(securityKey, JwtConstants.DirectKeyUseAlg, SecurityAlgorithms.Aes256CbcHmacSha512);
+            _encryptingCredentials = new EncryptingCredentials(key, JwtConstants.DirectKeyUseAlg, SecurityAlgorithms.Aes256CbcHmacSha512);
             return this;
         }
 
@@ -103,9 +101,9 @@ namespace WebApi.Security
             {
                 Audience = _audience,
                 Issuer = _issuer,
-                Expires= _expires,
+                Expires = _expires,
                 NotBefore = DateTime.Now,
-                SigningCredentials= _credentials,
+                SigningCredentials = _credentials,
                 Subject = new ClaimsIdentity(id),
                 EncryptingCredentials = _encryptingCredentials,
             };

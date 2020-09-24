@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
-using WebApi.Domain;
+using Domain;
 
-namespace WebApi.Infra
+namespace Infra.EF
 {
     public sealed class UnitOfWork : IUnitOfWork, IDisposable
     {

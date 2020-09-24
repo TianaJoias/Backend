@@ -1,8 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Domain;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using WebApi.Domain;
 
-namespace WebApi.Infra.EFMappers
+namespace Infra.EF.EFMappers
 {
     internal abstract class EntityMapper<T> : IEntityTypeConfiguration<T> where T : BaseEntity
     {

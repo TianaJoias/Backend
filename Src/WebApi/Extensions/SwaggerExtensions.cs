@@ -74,6 +74,7 @@ namespace WebApi.Extensions
 
             options.OperationFilter<AuthenticationRequirementsOperationFilter>();
             options.AddSecurityRequirement(security);
+            options.AddFluentValidationRules();
         }
 
         private static string XmlCommentsFilePath
