@@ -28,6 +28,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using GraphQL.Server.Transports.AspNetCore;
 using System.Collections.Generic;
+using Microsoft.AspNetCore.Authentication;
 
 namespace WebApi
 {
@@ -89,6 +90,7 @@ namespace WebApi
                     });
 
             services.AddSwagger();
+          
             services.AddSecurity();
             services.AddOptions(Configuration);
             services.AddVersioning();
@@ -110,6 +112,7 @@ namespace WebApi
             services.AddSingleton<TianaJoiasSchema>();
             services.AddSingleton<ProductType>();
             services.AddSingleton<ProductSortType>();
+            services.AddSingleton<ProductWhereClauseType>();
             services.AddSingleton<ObjectGraphType<PagedResultType<Product, ProductType>>>();
             services.AddSingleton<EnumerationGraphType<Sort>>();
             services.AddGraphQLAuth((_, s) =>

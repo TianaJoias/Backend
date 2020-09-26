@@ -59,7 +59,7 @@ namespace WebApi.Controllers
         [HttpGet("{id:guid}")]
         public async Task<IActionResult> GetById(Guid id)
         {
-            var productsPage = await _mediator.Send(new ProductQueryByIdRequest { Id = id });
+            var productsPage = await _mediator.Send(new ProductQueryByIdRequest(id));
             return Ok(productsPage);
         }
 
@@ -132,7 +132,7 @@ namespace WebApi.Controllers
     public record TagDTO
     {
         public Guid? Id { get; init; }
-        public string Name { get; init;  }
+        public string Name { get; init; }
     }
     public record SupplierDTO
     {

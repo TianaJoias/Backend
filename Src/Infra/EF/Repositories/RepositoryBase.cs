@@ -5,10 +5,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
+using System.Linq.Dynamic.Core;
 
 namespace Infra.EF.Repositories
 {
-    public abstract class RepositoryBase<T> : IRepository<T> where T : class, IEntity
+    public abstract class RepositoryBase<T> : IRepositoryPagination<T>, IRepository<T> where T : class, IEntity
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly TianaJoiasContextDB _context;
@@ -37,7 +38,7 @@ namespace Infra.EF.Repositories
 
         public async Task<T> GetById(Guid id)
         {
-            return await Load(_context.Set<T>()).FirstOrDefaultAsync(it=> it.Id == id);
+            return await Load(_context.Set<T>()).FirstOrDefaultAsync(it => it.Id == id);
         }
 
         public async Task<List<T>> List()
@@ -59,25 +60,26 @@ namespace Infra.EF.Repositories
         {
             return _unitOfWork.Update(entity);
         }
-        public async Task<PagedResult<T>> GetPaged(Expression<Func<T, bool>> filter,
-                                        int page, int pageSize, Func<IQueryable<T>, IOrderedQueryable<T>> ordering = null)
+
+        public async Task<Domain.PagedResult<T>> GetPaged(Expression<Func<T, bool>> filter,
+                                int page, int pageSize, Dictionary<string, Sort> ordering = null)
         {
             var query = _context.Set<T>().Where(filter);
-            var result = new PagedResult<T>
-            {
-                CurrentPage = page,
-                PageSize = pageSize,
-                RowCount = await query.CountAsync()
-            };
-
-            query = ordering == null ? query : ordering(query);
-            var pageCount = (double)result.RowCount / pageSize;
-            result.PageCount = (int)Math.Ceiling(pageCount);
-
-
-            var skip = page * pageSize;
-            result.Results = await Load(query.Skip(skip).Take(pageSize)).ToListAsync();
-            return result;
+            var then = false;
+            if (ordering is not null)
+                foreach (var item in ordering)
+                {
+                    var sort = item.Value == Sort.Desc ? string.Empty : "descending";
+                    if (then)
+                        query = (query as IOrderedQueryable<T>).ThenBy($"{item.Key} {sort}");
+                    else
+                        query = query.OrderBy($"{item.Key} {sort}");
+                    then = true;
+                }
+            var resultPage = query.PageResult(page, pageSize);
+            var records = await Load(resultPage.Queryable).ToListAsync();
+            return new Domain.PagedResult<T>(resultPage.CurrentPage, resultPage.PageCount, resultPage.PageSize, resultPage.RowCount , records);
         }
+
     }
 }

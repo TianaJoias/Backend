@@ -35,11 +35,14 @@ namespace WebApi.Controllers
         {
             if (request.GrantType == GranType.Password)
             {
+                    var password = BCrypt.Net.BCrypt.EnhancedHashPassword("ADMIN");
                 if (request.Username.ToUpper().Trim() == "ADMIN" && request.Password == "ADMIN")
                 {
                     var (token, refreshToken) = CreateToken();
                     return Ok(new { token, refreshToken });
                 }
+
+                return BadRequest("Password or Username not match.");
             }
 
             if (request.GrantType == GranType.RefreshToken)

@@ -1,6 +1,6 @@
 ﻿namespace Domain
 {
-    public interface IProductRepository : IRepository<Product>
+    public interface IProductRepository : IRepository<Product>, IRepositoryPagination<Product>
     {
     }
 

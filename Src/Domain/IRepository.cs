@@ -15,30 +15,13 @@ namespace Domain
         Task<T> Add(T entity);
         Task Update(T entity);
         Task Delete(T entity);
-        Task<PagedResult<T>> GetPaged(Expression<Func<T, bool>> filter,
-                                       int page, int pageSize, Func<IQueryable<T>, IOrderedQueryable<T>> ordering = null);
     }
-    public class PagedResult<T>
+    public interface IRepositoryPagination<T> where T : IEntity
     {
-        public int CurrentPage { get; set; }
-        public int PageCount { get; set; }
-        public int PageSize { get; set; }
-        public int RowCount { get; set; }
-        public IList<T> Results { get; set; }
-        public PagedResult()
-        {
-            Results = new List<T>();
-        }
-        public int FirstRowOnPage
-        {
-
-            get { return CurrentPage * PageSize + 1; }
-        }
-
-        public int LastRowOnPage
-        {
-            get { return Math.Min(CurrentPage * PageSize, RowCount); }
-        }
+       Task<PagedResult<T>> GetPaged(Expression<Func<T, bool>> filter,
+                        int page, int pageSize, Dictionary<string, Sort> ordering = null);
     }
 
+    public enum Sort { Asc, Desc }
+    public record PagedResult<T>(int CurrentPage, int PageCount, int PageSize, int RowCount, IList<T> Records);
 }
