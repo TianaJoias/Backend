@@ -3,14 +3,16 @@ using System;
 using Infra.EF;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Infra.EF.Migrations.SqlLite
 {
     [DbContext(typeof(TianaJoiasContextDB))]
-    partial class TianaJoiasContextDBModelSnapshot : ModelSnapshot
+    [Migration("20201007034832_Inital")]
+    partial class Inital
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

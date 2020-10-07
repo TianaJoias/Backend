@@ -5,6 +5,8 @@ using System.Linq;
 using System.Security.Claims;
 using System.Security.Principal;
 using System.Text;
+using Domain;
+using Mapster.Utils;
 using Microsoft.IdentityModel.Tokens;
 
 namespace WebApi.Security
@@ -39,7 +41,30 @@ namespace WebApi.Security
                 NameClaimType = "name",
                 TokenDecryptionKey = TokenConstants.EncryptionSecurityKey,
             };
-            return tokenHandler.ValidateToken(token, validationParameters, out _);
+            try
+            {
+                return tokenHandler.ValidateToken(token, validationParameters, out _);
+            }
+            catch (Exception)
+            {
+                IIdentity identity = new GenericIdentity("Invalid", "Invalid");
+
+                return new GenericPrincipal(identity, null);
+            }
+        }
+
+        public Roles[] GetRoles(string token)
+        {
+            var principal = GetPrincipal(token) as ClaimsPrincipal;
+            var refreshTokenClaim = principal.FindFirst(ClaimTypes.Role);
+            return refreshTokenClaim.Value?.Split(",").Select(it => Enum<Roles>.Parse(it)).ToArray();
+        }
+
+        public bool ValidateRefreshToken(string token, string refreshToken)
+        {
+            var principal = GetPrincipal(token) as ClaimsPrincipal;
+            var refreshTokenClaim = principal.FindFirst("RefreshToken");
+            return refreshTokenClaim?.Value == refreshToken;
         }
     }
 }

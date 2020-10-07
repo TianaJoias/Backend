@@ -175,7 +175,7 @@ namespace WebApi.Queries
         }
         public static Expression<Func<T, bool>> BuildOrExpression(Dictionary<string, object> items)
         {
-            var x = GetClauses(items);            
+            var x = GetClauses(items);
             var query = String.Join(" OR ", x.Select((value, index) => $"@{index}(it)"));
             return DynamicExpressionParser.ParseLambda<T, bool>(ParsingConfig.Default, false, query, x.ToArray());
         }
@@ -189,10 +189,10 @@ namespace WebApi.Queries
     {
         public ProductWhereClauseType()
         {
-            FieldString(it=> it.BarCode);
-            FieldString(it=> it.Description);
-            FieldString(it=> it.Id);
-          //  FieldArray(it=> it.Categories);
+            FieldString(it => it.EAN);
+            FieldString(it => it.Description);
+            FieldString(it => it.Id);
+            //  FieldArray(it=> it.Categories);
         }
     }
     public class ProductQuery : ObjectGraphType<object>

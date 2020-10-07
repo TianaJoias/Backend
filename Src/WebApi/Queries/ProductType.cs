@@ -10,7 +10,7 @@ namespace WebApi.Queries
         {
             Name = "Product";
             Field(x => x.Id, type: typeof(GuidGraphType)).Description("Product Id");
-            Field(x => x.BarCode).Description("Bar Code of Product");
+            Field(x => x.EAN).Description("Bar Code of Product");
             Field(x => x.Description).Description("Description of product");
             Field<ListGraphType<GuidGraphType>>("Categories", description: "Categories of the product", resolve: context =>
             {

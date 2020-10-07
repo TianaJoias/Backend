@@ -19,20 +19,26 @@ namespace Infra.EF.Repositories
         public TagRepository(IUnitOfWork unitOfWork, TianaJoiasContextDB context) : base(unitOfWork, context)
         { }
     }
-    public class BatchRepository : RepositoryBase<Batch>, IBatchRepository
+    public class BatchRepository : RepositoryBase<Lot>, IBatchRepository
     {
         public BatchRepository(IUnitOfWork unitOfWork, TianaJoiasContextDB context) : base(unitOfWork, context)
         { }
 
-        public override IQueryable<Batch> Load(IQueryable<Batch> query)
+        public override IQueryable<Lot> Load(IQueryable<Lot> query)
         {
-            return query.Include(it=> it.Product).Include(it=> it.Suppliers);
+            return query.Include(it => it.Suppliers);
         }
     }
 
     public class SupplierRepository : RepositoryBase<Supplier>, ISupplierRepository
     {
         public SupplierRepository(IUnitOfWork unitOfWork, TianaJoiasContextDB context) : base(unitOfWork, context)
+        { }
+    }
+
+    public class AccountRepository : RepositoryBase<Account>, IAccountRepository
+    {
+        public AccountRepository(IUnitOfWork unitOfWork, TianaJoiasContextDB context) : base(unitOfWork, context)
         { }
     }
 }

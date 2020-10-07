@@ -1,4 +1,5 @@
-﻿using Google.Apis.Auth;
+﻿using Domain;
+using Google.Apis.Auth;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -139,11 +140,17 @@ namespace WebApi.Security
     }
     public class GoogleAuthenticationHandler : AuthenticationHandler<CustomAuthOptions>
     {
+        private readonly IAccountRepository _accountRepository;
+
         public GoogleAuthenticationHandler(
             IOptionsMonitor<CustomAuthOptions> options,
             ILoggerFactory logger,
+            IAccountRepository accountRepository,
             UrlEncoder encoder,
-            ISystemClock clock) : base(options, logger, encoder, clock) { }
+            ISystemClock clock) : base(options, logger, encoder, clock)
+        {
+            _accountRepository = accountRepository;
+        }
 
         protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
         {
@@ -180,7 +187,10 @@ namespace WebApi.Security
             try
             {
                 var payload = await GoogleJsonWebSignature.ValidateAsync(securityToken);
-                var claims = new List<Claim>
+                var account = (await _accountRepository.List(it => it.ExternalProviders.Any(x => x.SubjectId == payload.Subject && x.Provider == GoogleAuthenticationDefaults.AuthenticationScheme))).FirstOrDefault();
+                if (account is not null)
+                {
+                    var claims = new List<Claim>
                 {
                     new Claim(ClaimTypes.NameIdentifier, payload.Name),
                     new Claim(ClaimTypes.Name, payload.Name),
@@ -191,11 +201,12 @@ namespace WebApi.Security
                     new Claim(JwtRegisteredClaimNames.Iss, payload.Issuer),
                 };
 
-
-                var identity = new ClaimsIdentity(claims, Scheme.Name);
-                var principal = new ClaimsPrincipal(identity);
-                var ticket = new AuthenticationTicket(principal, Scheme.Name);
-                return AuthenticateResult.Success(ticket);
+                    var identity = new ClaimsIdentity(claims, Scheme.Name);
+                    var principal = new ClaimsPrincipal(identity);
+                    var ticket = new AuthenticationTicket(principal, Scheme.Name);
+                    return AuthenticateResult.Success(ticket);
+                }
+                return AuthenticateResult.Fail("UserNotFound");
             }
             catch (Exception e)
             {

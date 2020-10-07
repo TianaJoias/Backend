@@ -9,6 +9,7 @@ namespace Domain
     public interface IRepository<T> where T : IEntity
     {
         Task<T> GetById(Guid id);
+        Task<T> GetByQuery(Expression<Func<T, bool>> filter);
         Task<List<T>> List();
         Task<List<T>> List(Expression<Func<T, bool>> filter);
         Task<bool> Exists(Expression<Func<T, bool>> filter);

@@ -4,7 +4,7 @@
     {
     }
 
-    public interface IBatchRepository : IRepository<Batch>
+    public interface IBatchRepository : IRepository<Lot>
     {
     }
 
@@ -13,6 +13,10 @@
     }
 
     public interface ITagRepository : IRepository<Tag>
+    {
+    }
+
+    public interface IAccountRepository : IRepository<Account>
     {
     }
 }

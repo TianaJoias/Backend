@@ -14,7 +14,7 @@ namespace WebApi.Controllers
 {
     [Route("v{version:apiVersion}/[controller]")]
     [ApiController]
-    [Authorize(Roles = Policies.Admin)]
+    [AuthorizeEnum(Roles.ADMIN)]
     public class ProductsController : ControllerBase
     {
         private readonly IProductRepository _productRepository;
@@ -40,7 +40,7 @@ namespace WebApi.Controllers
             var tags = await _tagRepository.List(it => productDTO.Categories.Contains(it.Id));
             var product = new Product
             {
-                BarCode = productDTO.BarCode,
+                EAN = productDTO.BarCode,
                 Description = productDTO.Description,
             };
             tags.ForEach(product.AddCategory);
@@ -68,7 +68,7 @@ namespace WebApi.Controllers
         {
             var tags = await _tagRepository.List(it => productDTO.Categories.Contains(it.Id));
             var product = await _productRepository.GetById(id);
-            product.BarCode = productDTO.BarCode;
+            product.EAN = productDTO.BarCode;
             product.Description = productDTO.Description;
             product.RemoveAllCategories();
             tags.ForEach(product.AddCategory);
@@ -87,9 +87,8 @@ namespace WebApi.Controllers
         [HttpPost("/batch")]
         public async Task<IActionResult> BatchPost([FromBody] BatchDTO batch)
         {
-            var product = await _productRepository.GetById(batch.ProductId);
             var suppliers = await _supplierRepository.List(it => batch.SuppliersId.Contains(it.Id));
-            await _batchRepository.Add(new Batch
+            await _batchRepository.Add(new Lot
             {
                 CostValue = batch.CostValue,
                 Date = batch.Date,
@@ -97,7 +96,7 @@ namespace WebApi.Controllers
                 Quantity = batch.Quantity,
                 SaleValue = batch.SaleValue,
                 Weight = batch.Weight,
-                Product = product,
+                ProductId = batch.ProductId,
                 Suppliers = suppliers
             });
             await _unitOfWork.Commit();

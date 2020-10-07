@@ -17,18 +17,14 @@ using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
 using Infra.EF;
 using GraphQL.Types;
-using WebApi.Aplication;
 using Mapster;
 using Domain;
 using System;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using GraphQL.Validation;
 using GraphQL.Authorization;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
-using GraphQL.Server.Transports.AspNetCore;
 using System.Collections.Generic;
-using Microsoft.AspNetCore.Authentication;
 
 namespace WebApi
 {
@@ -105,7 +101,7 @@ namespace WebApi
                     .AllowAnyHeader()
                     .AllowAnyMethod());
                 options.AddPolicy("AllowMyOrigin",
-                builder => builder.WithOrigins("http://mysite.com"));
+                builder => builder.WithOrigins("https://localhost:3000"));
             });
 
             services.AddSingleton<ProductQuery>();
@@ -161,7 +157,7 @@ namespace WebApi
                 endpoints.MapControllers();
             });
             app.UseVersionedSwagger(provider);
-            dataContext.Database.Migrate();
+            TianaJoiasContextDB.Seeding(dataContext);
             TypeAdapterConfig<ProductCategory, Guid>
                 .NewConfig()
                 .MapWith(orgin => orgin.TagId);

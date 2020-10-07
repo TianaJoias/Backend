@@ -38,7 +38,7 @@ namespace Infra.EF.Repositories
 
         public async Task<T> GetById(Guid id)
         {
-            return await Load(_context.Set<T>()).FirstOrDefaultAsync(it => it.Id == id);
+            return await GetByQuery(it => it.Id == id);
         }
 
         public async Task<List<T>> List()
@@ -56,6 +56,12 @@ namespace Infra.EF.Repositories
 
             return await _context.Set<T>().AnyAsync(filter);
         }
+
+        public async Task<T> GetByQuery(Expression<Func<T, bool>> filter)
+        {
+            return await Load(_context.Set<T>()).FirstOrDefaultAsync(filter);
+        }
+
         public Task Update(T entity)
         {
             return _unitOfWork.Update(entity);
@@ -80,6 +86,7 @@ namespace Infra.EF.Repositories
             var records = await Load(resultPage.Queryable).ToListAsync();
             return new Domain.PagedResult<T>(resultPage.CurrentPage, resultPage.PageCount, resultPage.PageSize, resultPage.RowCount , records);
         }
+
 
     }
 }

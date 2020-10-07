@@ -1,7 +1,10 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
+using System.Linq;
 using System.Security.Claims;
+using System.Threading.Tasks;
+using Domain;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -22,57 +25,53 @@ namespace WebApi.Controllers
     public class AuthenticationController : ControllerBase
     {
         private readonly ITokenService _tokenService;
+        private readonly IAccountRepository _accountRepository;
 
-        public AuthenticationController(ITokenService tokenService)
+        public AuthenticationController(ITokenService tokenService, IAccountRepository accountRepository)
         {
             _tokenService = tokenService;
+            _accountRepository = accountRepository;
         }
 
         [HttpPost("login"), ProducesResponseType(StatusCodes.Status200OK), AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult Login([FromBody][Required] LoginDTO request)
+        public async Task<IActionResult> LoginAsync([FromBody][Required] LoginDTO request)
         {
             if (request.GrantType == GranType.Password)
             {
-                    var password = BCrypt.Net.BCrypt.EnhancedHashPassword("ADMIN");
-                if (request.Username.ToUpper().Trim() == "ADMIN" && request.Password == "ADMIN")
+                var user = await _accountRepository.GetByQuery(it => it.User.Email.ToLower() == request.Username.ToLower());
+                if (user is not null && BCrypt.Net.BCrypt.Verify(request.Password, user.User.Password))
                 {
-                    var (token, refreshToken) = CreateToken();
+                    var (token, refreshToken) = CreateToken(user.Roles.ToArray());
                     return Ok(new { token, refreshToken });
                 }
-
                 return BadRequest("Password or Username not match.");
             }
 
             if (request.GrantType == GranType.RefreshToken)
             {
-                if (RefreshTokenIsValid(request))
+                if (_tokenService.ValidateRefreshToken(request.ExpiredToken, request.Token))
                 {
-                    var (token, refreshToken) = CreateToken();
+                    var roles = _tokenService.GetRoles(request.ExpiredToken);
+                    var (token, refreshToken) = CreateToken(roles);
                     return Ok(new { token, refreshToken });
                 }
-                return BadRequest("Refresh Token não pertence a esse token." + this.TraceId());
+                return BadRequest("Refresh Token invalido." + this.TraceId());
             }
 
             return BadRequest("Metodo Não implementado." + this.TraceId());
         }
 
-        private bool RefreshTokenIsValid(LoginDTO request)
-        {
-            var principal = _tokenService.GetPrincipal(request.ExpiredToken) as ClaimsPrincipal;
-            var refreshTokenClaim = principal?.FindFirst("RefreshToken");
-            return refreshTokenClaim?.Value == request.Token;
-        }
 
-        private (string token, string refreshToken) CreateToken()
+        private (string token, string refreshToken) CreateToken(params Roles[] roles)
         {
             var refreshToken = Guid.NewGuid().ToString("N");
             var userId = Guid.NewGuid().ToString();
             var token = _tokenService.CreateToken()
-                .AddRole(Policies.Admin)
+                .AddRoles(roles.Select(it => it.ToString("G")).ToArray())
                 .AddSubject(userId)
-                .AddCustomRole("RefreshToken", refreshToken)
+                .AddRefreshToken(refreshToken)
                 .Build();
             return (token, refreshToken);
         }

@@ -11,12 +11,16 @@ namespace WebApi.Security
     {
         IPublicTokenBuilder AddSubject(string subject);
         IPublicTokenBuilder AddRole(string role);
+        IPublicTokenBuilder AddRoles(string[] roles);
+        IPublicTokenBuilder AddRefreshToken(string refreshToken);
         IPublicTokenBuilder AddCustomRole(string roleName, string roleValue);
         string Build();
     }
 
     public class TokenBuilder : IPublicTokenBuilder
     {
+
+        public const string RefreshTokenClaim = "RefreshToken";
         private string _issuer;
         private string _audience;
         private DateTime _expires;
@@ -117,6 +121,18 @@ namespace WebApi.Security
         {
             AddClaim(new Claim(roleName, roleValue));
             return this;
+        }
+
+        public IPublicTokenBuilder AddRoles(string[] roles)
+        {
+            foreach (var role in roles)
+                AddRole(role);
+            return this;
+        }
+
+        public IPublicTokenBuilder AddRefreshToken(string refreshToken)
+        {
+            return AddCustomRole(RefreshTokenClaim, refreshToken);
         }
     }
 }

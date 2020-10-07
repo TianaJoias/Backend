@@ -26,7 +26,9 @@ namespace WebApi.Aplication
                 query = it => true;
             var result = await _productRepository.GetPaged(query, request.Page, request.PageSize,
                 request.OrderBy);
-            return result.Adapt<PagedResult<ProductDTO>>();
+
+            var dto = new PagedResult<ProductDTO>(result.CurrentPage, result.PageCount, result.PageSize, result.RowCount, Records: result.Records.Adapt<IList<ProductDTO>>());
+            return dto;
         }
 
 
@@ -37,17 +39,12 @@ namespace WebApi.Aplication
         }
     }
 
-
-
-    public abstract record PaginationQuery(string SearchTerm, int Page = 0, int PageSize = 5, Dictionary<string, Sort> OrderBy = null);
-
-
-    public record ProductQueryInDTO : PaginationQuery, IRequest<PagedResult<ProductDTO>>
+    public class PaginationQuery
     {
-        public ProductQueryInDTO(string SearchTerm, int Page = 0, int PageSize = 5, Dictionary<string, Sort> OrderBy = null) : base(SearchTerm, Page, PageSize, OrderBy)
-        {
-        }
+        public string SearchTerm { get; set; }
+        public int Page { get; set; } = 1; public int PageSize { get; set; } = 5; public Dictionary<string, Sort> OrderBy { get; set; } = null;
     }
+
 
     public record ProductQueryByIdRequest(Guid Id) : IRequest<ProductDTO>;
 
