@@ -3,9 +3,11 @@ using Domain;
 
 namespace WebApi.Aplication
 {
-    public class PaginationQuery
+    public record PaginationQuery
     {
-        public string SearchTerm { get; set; }
-        public int Page { get; set; } = 1; public int PageSize { get; set; } = 5; public Dictionary<string, Sort> OrderBy { get; set; } = null;
+        public string SearchTerm { get; init; }
+        public int Page { get; init; } = 1;
+        public int PageSize { get; init; } = 5;
+        public Dictionary<string, Sort> OrderBy { get; init; } = null;
     }
 }

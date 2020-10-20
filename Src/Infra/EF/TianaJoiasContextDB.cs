@@ -43,9 +43,23 @@ namespace Infra.EF
             {
                 Id = Guid.Parse("{B4193BD2-5753-49E3-9850-D13FE9CDE43E}"),
                 Description = "Supplier ONE",
-                Name = "Supplier One"
+                Name = "Supplier One",
             };
             await context.Set<Supplier>().AddRangeAsync(supplier);
+            var lot = new Lot
+            {
+                CostPrice = 10,
+                Number = "123",
+                Weight = 10,
+                ProductId = Guid.Parse("{37F1AD8B-5707-4C2E-BEB6-BAF05BF18E9C}"),
+                Quantity = 10,
+                SalePrice = 30,
+                EAN = "1-2o3809123",
+                Suppliers = new List<Supplier> { supplier },
+                Date = Clock.Now,
+                Id = Guid.Parse("{37F1AD8B-5707-4C2E-BEB6-BAF05BF18E9C}"),
+            };
+            await context.Set<Lot>().AddRangeAsync(lot);
         }
 
         private static async Task AddProducts(TianaJoiasContextDB context)
@@ -62,11 +76,13 @@ namespace Infra.EF
 
             var firstProduct = new Product
             {
+                Id = Guid.Parse("{37F1AD8B-5707-4C2E-BEB6-BAF05BF18E9C}"),
                 EAN = "123456",
                 Description = "First Product"
             };
             var secondProduct = new Product
             {
+                Id = Guid.Parse("{C6504702-A0B6-4D95-9B9B-8A417316A15D}"),
                 EAN = "654321",
                 Description = "second Product"
             };
@@ -91,11 +107,13 @@ namespace Infra.EF
                 }
             };
             await context.Set<Account>().AddAsync(account);
-            var channel = new Channel
+            var channel = new Agent
             {
                 OwnerId = guid,
+                AccountableId = guid,
+                Id = Guid.Parse("{498B49C8-B17D-4A40-BCC1-EEA97508A344}")
             };
-            await context.Set<Channel>().AddAsync(channel);
+            await context.Set<Agent>().AddAsync(channel);
         }
     }
 }

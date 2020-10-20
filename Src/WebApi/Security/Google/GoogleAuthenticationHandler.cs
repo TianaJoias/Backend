@@ -62,7 +62,7 @@ namespace WebApi.Security.Google
                         new Claim(JwtRegisteredClaimNames.FamilyName, payload.FamilyName),
                         new Claim(JwtRegisteredClaimNames.GivenName, payload.GivenName),
                         new Claim(JwtRegisteredClaimNames.Email, payload.Email),
-                        new Claim(JwtRegisteredClaimNames.Sub, payload.Subject),
+                        new Claim(JwtRegisteredClaimNames.Sub, account.Id.ToString()),
                         new Claim(JwtRegisteredClaimNames.Iss, payload.Issuer),
                     };
                     var roles = account.Roles.Select(it => new Claim(ClaimTypes.Role, it.ToString("G"))).ToList();

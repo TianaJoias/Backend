@@ -54,6 +54,29 @@ namespace Infra.EF.Migrations.SqlLite
                     b.ToTable("IdentityProviders");
                 });
 
+            modelBuilder.Entity("Domain.Catalog.Agent", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("Id");
+
+                    b.Property<Guid>("AccountableId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid?>("CurrentCatalogId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CurrentCatalogId");
+
+                    b.ToTable("Agents");
+                });
+
             modelBuilder.Entity("Domain.Catalog.Catalog", b =>
                 {
                     b.Property<Guid>("Id")
@@ -70,11 +93,14 @@ namespace Infra.EF.Migrations.SqlLite
                     b.Property<DateTime>("Opened")
                         .HasColumnType("TEXT");
 
+                    b.Property<decimal>("TotalSold")
+                        .HasColumnType("TEXT");
+
                     b.HasKey("Id");
 
                     b.HasIndex("ChannelId");
 
-                    b.ToTable("Catalog");
+                    b.ToTable("Catalogs");
                 });
 
             modelBuilder.Entity("Domain.Catalog.CatalogItem", b =>
@@ -87,11 +113,17 @@ namespace Infra.EF.Migrations.SqlLite
                     b.Property<Guid?>("CatalogId")
                         .HasColumnType("TEXT");
 
+                    b.Property<decimal>("CurrentQuantity")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("EAN")
                         .HasColumnType("TEXT");
 
                     b.Property<bool>("Enabled")
                         .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("InitialQuantity")
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("LongDescription")
                         .HasColumnType("TEXT");
@@ -105,9 +137,6 @@ namespace Infra.EF.Migrations.SqlLite
                     b.Property<Guid>("ProdutoId")
                         .HasColumnType("TEXT");
 
-                    b.Property<decimal>("Quantity")
-                        .HasColumnType("TEXT");
-
                     b.Property<string>("SKU")
                         .HasColumnType("TEXT");
 
@@ -117,34 +146,14 @@ namespace Infra.EF.Migrations.SqlLite
                     b.Property<string>("Thumbnail")
                         .HasColumnType("TEXT");
 
+                    b.Property<decimal>("TotalSold")
+                        .HasColumnType("TEXT");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CatalogId");
 
                     b.ToTable("CatalogItems");
-                });
-
-            modelBuilder.Entity("Domain.Catalog.Channel", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT")
-                        .HasColumnName("Id");
-
-                    b.Property<Guid?>("CurrentCatalogId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<Guid>("OwnerId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<Guid?>("ParentId")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CurrentCatalogId");
-
-                    b.ToTable("Channel");
                 });
 
             modelBuilder.Entity("Domain.Portifolio.Product", b =>
@@ -165,7 +174,7 @@ namespace Infra.EF.Migrations.SqlLite
 
                     b.HasKey("Id");
 
-                    b.ToTable("Product");
+                    b.ToTable("Products");
                 });
 
             modelBuilder.Entity("Domain.Portifolio.ProductCategory", b =>
@@ -249,7 +258,7 @@ namespace Infra.EF.Migrations.SqlLite
 
                     b.HasKey("Id");
 
-                    b.ToTable("Supplier");
+                    b.ToTable("Suppliers");
                 });
 
             modelBuilder.Entity("LotSupplier", b =>
@@ -298,9 +307,18 @@ namespace Infra.EF.Migrations.SqlLite
                         .HasForeignKey("AccountId");
                 });
 
+            modelBuilder.Entity("Domain.Catalog.Agent", b =>
+                {
+                    b.HasOne("Domain.Catalog.Catalog", "CurrentCatalog")
+                        .WithMany()
+                        .HasForeignKey("CurrentCatalogId");
+
+                    b.Navigation("CurrentCatalog");
+                });
+
             modelBuilder.Entity("Domain.Catalog.Catalog", b =>
                 {
-                    b.HasOne("Domain.Catalog.Channel", "Channel")
+                    b.HasOne("Domain.Catalog.Agent", "Channel")
                         .WithMany()
                         .HasForeignKey("ChannelId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -315,15 +333,6 @@ namespace Infra.EF.Migrations.SqlLite
                         .WithMany("Items")
                         .HasForeignKey("CatalogId")
                         .HasConstraintName("FK_CATALOG_ITEM");
-                });
-
-            modelBuilder.Entity("Domain.Catalog.Channel", b =>
-                {
-                    b.HasOne("Domain.Catalog.Catalog", "CurrentCatalog")
-                        .WithMany()
-                        .HasForeignKey("CurrentCatalogId");
-
-                    b.Navigation("CurrentCatalog");
                 });
 
             modelBuilder.Entity("Domain.Portifolio.ProductCategory", b =>

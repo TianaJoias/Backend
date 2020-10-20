@@ -3,9 +3,9 @@ using System.Collections.Generic;
 
 namespace Domain.Catalog
 {
-    public class Channel: BaseEntity
+    public class Agent : BaseEntity
     {
-        public Guid? ParentId { get; set; }
+        public Guid AccountableId { get; set; }
         public Guid OwnerId { get; set; }
         public Catalog CurrentCatalog { get; set; }
 

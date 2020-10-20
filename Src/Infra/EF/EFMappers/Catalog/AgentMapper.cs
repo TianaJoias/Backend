@@ -8,15 +8,16 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Infra.EF.EFMappers.Catalog
 {
-    internal class ChannelMapper : EntityMapper<Channel>
+    internal class AgentMapper : EntityMapper<Agent>
     {
-        public override void Configure(EntityTypeBuilder<Channel> builder)
+        public override void Configure(EntityTypeBuilder<Agent> builder)
         {
             base.Configure(builder);
 
-            builder.ToTable("Channel");
-            builder.Property(it => it.OwnerId);
-            builder.HasMany<Domain.Catalog.Catalog>().WithOne(it=> it.Channel).IsRequired();
+            builder.ToTable("Agents");
+            builder.Property(it => it.OwnerId).IsRequired();
+            builder.Property(it => it.AccountableId).IsRequired();
+            builder.HasMany<Domain.Catalog.Catalog>().WithOne(it => it.Channel).IsRequired();
         }
     }
     internal class CatalogMapper : EntityMapper<Domain.Catalog.Catalog>
@@ -24,9 +25,10 @@ namespace Infra.EF.EFMappers.Catalog
         public override void Configure(EntityTypeBuilder<Domain.Catalog.Catalog> builder)
         {
             base.Configure(builder);
-            builder.ToTable("Catalog");
+            builder.ToTable("Catalogs");
             builder.Property(it => it.Closed);
             builder.Property(it => it.Opened);
+            builder.Property(it => it.TotalSold);
             builder.HasOne(it => it.Channel).WithMany();
             builder.HasMany(it => it.Items).WithOne().HasForeignKey("CatalogId").HasConstraintName("FK_CATALOG_ITEM");
             builder.Metadata
@@ -49,9 +51,11 @@ namespace Infra.EF.EFMappers.Catalog
             builder.Property(it => it.LotId);
             builder.Property(it => it.Price);
             builder.Property(it => it.ProdutoId);
-            builder.Property(it => it.Quantity);
+            builder.Property(it => it.InitialQuantity);
+            builder.Property(it => it.CurrentQuantity);
             builder.Property(it => it.ShortDescription);
             builder.Property(it => it.SKU);
+            builder.Property(it => it.TotalSold);
             builder.Property(it => it.Thumbnail).HasJsonConversion();
         }
     }

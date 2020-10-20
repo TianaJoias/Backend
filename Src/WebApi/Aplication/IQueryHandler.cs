@@ -7,15 +7,15 @@ namespace WebApi.Aplication
 {
     public interface IQueryHandler<TQuery, TResult> :
         IRequestHandler<TQuery, Result<TResult>>
-        where TQuery : IQuery<Result<TResult>>
+        where TQuery : IQuery<TResult>
     {
     }
 
-    public interface ICommandHandler<TCommand> : IRequestHandler<TCommand> where TCommand : ICommand
+    public interface ICommandHandler<TCommand> : IRequestHandler<TCommand, Result> where TCommand : ICommand
     {
     }
 
-    public interface ICommand : IRequest
+    public interface ICommand : IRequest<Result>
     {
     }
 }

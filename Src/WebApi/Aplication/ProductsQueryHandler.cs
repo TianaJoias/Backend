@@ -10,7 +10,7 @@ using Mapster;
 
 namespace WebApi.Aplication
 {
-    public class ProductsQueryHandler : IQueryHandler<ProductQuery, PagedResult<ProductQueryResult>>,
+    public class ProductsQueryHandler : IQueryHandler<ProductQuery, QueryPagedResult<ProductQueryResult>>,
         IQueryHandler<ProductQueryById, ProductQueryResult>
     {
         private readonly IProductRepository _productRepository;
@@ -20,7 +20,7 @@ namespace WebApi.Aplication
             _productRepository = productRepository;
         }
 
-        public async Task<Result<PagedResult<ProductQueryResult>>> Handle(ProductQuery request, CancellationToken cancellationToken)
+        public async Task<Result<QueryPagedResult<ProductQueryResult>>> Handle(ProductQuery request, CancellationToken cancellationToken)
         {
             Expression<Func<Product, bool>> query = it => it.Description.Contains(request.SearchTerm);
             if (string.IsNullOrWhiteSpace(request.SearchTerm))
@@ -28,7 +28,7 @@ namespace WebApi.Aplication
             var result = await _productRepository.GetPaged(query, request.Page, request.PageSize,
                 request.OrderBy);
 
-            var dto = new PagedResult<ProductQueryResult>(result.CurrentPage, result.PageCount, result.PageSize, result.RowCount, Records: result.Records.Adapt<IList<ProductQueryResult>>());
+            var dto = new QueryPagedResult<ProductQueryResult>(result.CurrentPage, result.PageCount, result.PageSize, result.RowCount, Records: result.Records.Adapt<IList<ProductQueryResult>>());
             return Result.Ok(dto);
         }
 
@@ -41,7 +41,9 @@ namespace WebApi.Aplication
     }
 
 
-    public record ProductQueryById(Guid Id) : IQuery<Result<ProductQueryResult>>;
+    public record QueryPagedResult<T>(int CurrentPage, int PageCount, int PageSize, int RowCount, IList<T> Records) : IQuery<T>;
+
+    public record ProductQueryById(Guid Id) : IQuery<ProductQueryResult>;
 
     public record ProductQueryResult
     {

@@ -57,7 +57,7 @@ namespace WebApi.Aplication.Account
 
     public record LoginQueryResult(string Token, string RefreshToken);
 
-    public record PasswordLoginQuery : IQuery<Result<LoginQueryResult>>
+    public record PasswordLoginQuery : IQuery<LoginQueryResult>
     {
         public string Password { get; init; }
         public string Username { get; init; }
@@ -65,7 +65,7 @@ namespace WebApi.Aplication.Account
             => (Username, Password) = (username, password);
     }
 
-    public record RefreshLoginQuery : IQuery<Result<LoginQueryResult>>
+    public record RefreshLoginQuery : IQuery<LoginQueryResult>
     {
         public string RefreshToken { get; init; }
         public string ExpiredToken { get; init; }

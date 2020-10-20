@@ -41,7 +41,7 @@ namespace Infra.EF.Migrations.SqlLite
                 });
 
             migrationBuilder.CreateTable(
-                name: "Product",
+                name: "Products",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "TEXT", nullable: false),
@@ -51,11 +51,11 @@ namespace Infra.EF.Migrations.SqlLite
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Product", x => x.Id);
+                    table.PrimaryKey("PK_Products", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
-                name: "Supplier",
+                name: "Suppliers",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "TEXT", nullable: false),
@@ -64,7 +64,7 @@ namespace Infra.EF.Migrations.SqlLite
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Supplier", x => x.Id);
+                    table.PrimaryKey("PK_Suppliers", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -116,9 +116,9 @@ namespace Infra.EF.Migrations.SqlLite
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_LotSupplier_Supplier_SuppliersId",
+                        name: "FK_LotSupplier_Suppliers_SuppliersId",
                         column: x => x.SuppliersId,
-                        principalTable: "Supplier",
+                        principalTable: "Suppliers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -134,9 +134,9 @@ namespace Infra.EF.Migrations.SqlLite
                 {
                     table.PrimaryKey("PK_ProductCategory", x => new { x.ProductId, x.TagId });
                     table.ForeignKey(
-                        name: "FK_ProductCategory_Product_ProductId",
+                        name: "FK_ProductCategory_Products_ProductId",
                         column: x => x.ProductId,
-                        principalTable: "Product",
+                        principalTable: "Products",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
@@ -148,17 +148,54 @@ namespace Infra.EF.Migrations.SqlLite
                 });
 
             migrationBuilder.CreateTable(
+                name: "Catalogs",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    ChannelId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    Opened = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    Closed = table.Column<DateTime>(type: "TEXT", nullable: true),
+                    TotalSold = table.Column<decimal>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Catalogs", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Agents",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    AccountableId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    OwnerId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    CurrentCatalogId = table.Column<Guid>(type: "TEXT", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Agents", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Agents_Catalogs_CurrentCatalogId",
+                        column: x => x.CurrentCatalogId,
+                        principalTable: "Catalogs",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "CatalogItems",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "TEXT", nullable: false),
                     LotId = table.Column<Guid>(type: "TEXT", nullable: false),
                     ProdutoId = table.Column<Guid>(type: "TEXT", nullable: false),
-                    Quantity = table.Column<decimal>(type: "TEXT", nullable: false),
+                    InitialQuantity = table.Column<decimal>(type: "TEXT", nullable: false),
+                    CurrentQuantity = table.Column<decimal>(type: "TEXT", nullable: false),
                     Price = table.Column<decimal>(type: "TEXT", nullable: false),
                     SKU = table.Column<string>(type: "TEXT", nullable: true),
                     EAN = table.Column<string>(type: "TEXT", nullable: true),
                     LongDescription = table.Column<string>(type: "TEXT", nullable: true),
+                    TotalSold = table.Column<decimal>(type: "TEXT", nullable: false),
                     ShortDescription = table.Column<string>(type: "TEXT", nullable: true),
                     Thumbnail = table.Column<string>(type: "TEXT", nullable: true),
                     Enabled = table.Column<bool>(type: "INTEGER", nullable: false),
@@ -167,46 +204,18 @@ namespace Infra.EF.Migrations.SqlLite
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_CatalogItems", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Channel",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    ParentId = table.Column<Guid>(type: "TEXT", nullable: true),
-                    OwnerId = table.Column<Guid>(type: "TEXT", nullable: false),
-                    CurrentCatalogId = table.Column<Guid>(type: "TEXT", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Channel", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Catalog",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    ChannelId = table.Column<Guid>(type: "TEXT", nullable: false),
-                    Opened = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    Closed = table.Column<DateTime>(type: "TEXT", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Catalog", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Catalog_Channel_ChannelId",
-                        column: x => x.ChannelId,
-                        principalTable: "Channel",
+                        name: "FK_CATALOG_ITEM",
+                        column: x => x.CatalogId,
+                        principalTable: "Catalogs",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_Catalog_ChannelId",
-                table: "Catalog",
-                column: "ChannelId");
+                name: "IX_Agents_CurrentCatalogId",
+                table: "Agents",
+                column: "CurrentCatalogId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_CatalogItems_CatalogId",
@@ -214,9 +223,9 @@ namespace Infra.EF.Migrations.SqlLite
                 column: "CatalogId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Channel_CurrentCatalogId",
-                table: "Channel",
-                column: "CurrentCatalogId");
+                name: "IX_Catalogs_ChannelId",
+                table: "Catalogs",
+                column: "ChannelId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_IdentityProviders_AccountId",
@@ -234,27 +243,19 @@ namespace Infra.EF.Migrations.SqlLite
                 column: "TagId");
 
             migrationBuilder.AddForeignKey(
-                name: "FK_CATALOG_ITEM",
-                table: "CatalogItems",
-                column: "CatalogId",
-                principalTable: "Catalog",
+                name: "FK_Catalogs_Agents_ChannelId",
+                table: "Catalogs",
+                column: "ChannelId",
+                principalTable: "Agents",
                 principalColumn: "Id",
-                onDelete: ReferentialAction.Restrict);
-
-            migrationBuilder.AddForeignKey(
-                name: "FK_Channel_Catalog_CurrentCatalogId",
-                table: "Channel",
-                column: "CurrentCatalogId",
-                principalTable: "Catalog",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.Restrict);
+                onDelete: ReferentialAction.Cascade);
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropForeignKey(
-                name: "FK_Catalog_Channel_ChannelId",
-                table: "Catalog");
+                name: "FK_Agents_Catalogs_CurrentCatalogId",
+                table: "Agents");
 
             migrationBuilder.DropTable(
                 name: "CatalogItems");
@@ -275,19 +276,19 @@ namespace Infra.EF.Migrations.SqlLite
                 name: "Lots");
 
             migrationBuilder.DropTable(
-                name: "Supplier");
+                name: "Suppliers");
 
             migrationBuilder.DropTable(
-                name: "Product");
+                name: "Products");
 
             migrationBuilder.DropTable(
                 name: "Tags");
 
             migrationBuilder.DropTable(
-                name: "Channel");
+                name: "Catalogs");
 
             migrationBuilder.DropTable(
-                name: "Catalog");
+                name: "Agents");
         }
     }
 }

@@ -73,7 +73,13 @@ namespace WebApi.Controllers
 
             return new BadRequestObjectResult(TransformErrors(result.Errors));
         }
+        public static IActionResult ToActionResult(this Result result)
+        {
+            if (result.IsSuccess)
+                return new OkResult();
 
+            return new BadRequestObjectResult(TransformErrors(result.Errors));
+        }
         private static IEnumerable<ErrorResponse> TransformErrors(List<Error> errors)
         {
             return errors.Select(TransformError);

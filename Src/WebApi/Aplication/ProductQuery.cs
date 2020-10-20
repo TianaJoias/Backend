@@ -3,7 +3,7 @@ using FluentResults;
 
 namespace WebApi.Aplication
 {
-    public class ProductQuery : PaginationQuery, IQuery<Result<PagedResult<ProductQueryResult>>>
+    public record ProductQuery : PaginationQuery, IQuery<QueryPagedResult<ProductQueryResult>>
     {
 
     }

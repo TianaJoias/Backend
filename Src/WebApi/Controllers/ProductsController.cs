@@ -6,8 +6,11 @@ using FluentValidation;
 using Mapster;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using WebApi.Aplication;
 using WebApi.Aplication.Catalog;
@@ -81,13 +84,13 @@ namespace WebApi.Controllers
             return Ok();
         }
 
-        [HttpGet("/batch")]
+        [HttpGet("batch")]
         public async Task<IActionResult> BatchGet()
         {
             var suppliers = await _batchRepository.List();
             return Ok(suppliers.Adapt<IList<BatchDTO>>());
         }
-        [HttpPost("/batch")]
+        [HttpPost("batch")]
         public async Task<IActionResult> BatchPost([FromBody] BatchDTO batch)
         {
             var suppliers = await _supplierRepository.List(it => batch.SuppliersId.Contains(it.Id));
@@ -106,7 +109,7 @@ namespace WebApi.Controllers
             return Ok();
         }
 
-        [HttpPost("/supplier")]
+        [HttpPost("supplier")]
         public async Task<IActionResult> Supplier([FromBody] SupplierDTO productDto)
         {
             var product = productDto.Adapt<Supplier>();
@@ -115,14 +118,14 @@ namespace WebApi.Controllers
             return Ok();
         }
 
-        [HttpGet("/supplier")]
+        [HttpGet("supplier")]
         public async Task<IActionResult> SupplierGet()
         {
             var suppliers = await _supplierRepository.List();
             return Ok(suppliers);
         }
 
-        [HttpPost("/tags")]
+        [HttpPost("tags")]
         public async Task<IActionResult> Tags([FromBody] TagDTO tagDTO)
         {
             var tag = tagDTO.Adapt<Tag>();
@@ -131,13 +134,60 @@ namespace WebApi.Controllers
             return Ok(tag);
         }
 
-        [HttpPost("/catalog")]
-        public async Task<IActionResult> Catalog([FromBody] CatalogOpenCommand command)
+        [HttpGet("agents")]
+        public async Task<IActionResult> Agents([FromQuery]PaginateRequest request)
         {
-            await _mediator.Send(command);
-            return Ok();
+            var query = request.Adapt<AgentsQuery>();
+            var result = await _mediator.Send(query);
+            return result.ToActionResult();
+        }
+
+        [HttpPost("catalog")]
+        public async Task<IActionResult> Catalog([FromBody] CatalogOpenRequest request)
+        {
+            var command = request.Adapt<CatalogOpenCommand>();
+            command.AccountableId = User.GetId();
+            var result = await _mediator.Send(command);
+            return result.ToActionResult();
+        }
+
+        [HttpPut("catalog")]
+        public async Task<IActionResult> CatalogPut([FromBody] CatalogCloseCommand command)
+        {
+            var result = await _mediator.Send(command);
+            return result.ToActionResult();
         }
     }
+     public record PaginateRequest
+    {
+        public string SearchTerm { get; init; }
+        public int Page { get; init; } = 1;
+        public int PageSize { get; init; } = 5;
+        public Dictionary<string, Sort> OrderBy { get; init; } = null;
+    }
+    public static class UserExtensions
+    {
+        public static Guid GetId(this ClaimsPrincipal user)
+        {
+            var value = user.FindFirstValue(JwtRegisteredClaimNames.Sub);
+            return Guid.Parse(value);
+        }
+    }
+
+
+    public record CatalogOpenRequest
+    {
+        public Guid OwnerId { get; init; }
+        public IList<CatalogOpenItemRequest> Items { get; init; }
+    }
+
+    public record CatalogOpenItemRequest
+    {
+        public Guid ProductId { get; init; }
+        public Guid LotId { get; init; }
+        public decimal Quantity { get; init; }
+    }
+
 
     public record TagDTO
     {
