@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Infra.EF.Migrations.SqlLite
 {
-    public partial class Inital : Migration
+    public partial class Initial : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -27,12 +27,13 @@ namespace Infra.EF.Migrations.SqlLite
                 {
                     Id = table.Column<Guid>(type: "TEXT", nullable: false),
                     ProductId = table.Column<Guid>(type: "TEXT", nullable: false),
-                    CostValue = table.Column<decimal>(type: "TEXT", nullable: false),
-                    SaleValue = table.Column<decimal>(type: "TEXT", nullable: false),
+                    CostPrice = table.Column<decimal>(type: "TEXT", nullable: false),
+                    SalePrice = table.Column<decimal>(type: "TEXT", nullable: false),
                     Quantity = table.Column<decimal>(type: "TEXT", nullable: false),
                     Weight = table.Column<decimal>(type: "TEXT", nullable: true),
                     Date = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    Number = table.Column<string>(type: "TEXT", nullable: true)
+                    Number = table.Column<string>(type: "TEXT", nullable: true),
+                    EAN = table.Column<string>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -45,7 +46,8 @@ namespace Infra.EF.Migrations.SqlLite
                 {
                     Id = table.Column<Guid>(type: "TEXT", nullable: false),
                     EAN = table.Column<string>(type: "TEXT", nullable: true),
-                    Description = table.Column<string>(type: "TEXT", nullable: true)
+                    Description = table.Column<string>(type: "TEXT", nullable: true),
+                    SKU = table.Column<string>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -152,7 +154,7 @@ namespace Infra.EF.Migrations.SqlLite
                     Id = table.Column<Guid>(type: "TEXT", nullable: false),
                     LotId = table.Column<Guid>(type: "TEXT", nullable: false),
                     ProdutoId = table.Column<Guid>(type: "TEXT", nullable: false),
-                    Quantity = table.Column<int>(type: "INTEGER", nullable: false),
+                    Quantity = table.Column<decimal>(type: "TEXT", nullable: false),
                     Price = table.Column<decimal>(type: "TEXT", nullable: false),
                     SKU = table.Column<string>(type: "TEXT", nullable: true),
                     EAN = table.Column<string>(type: "TEXT", nullable: true),
@@ -172,7 +174,8 @@ namespace Infra.EF.Migrations.SqlLite
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    AccountOwnerId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    ParentId = table.Column<Guid>(type: "TEXT", nullable: true),
+                    OwnerId = table.Column<Guid>(type: "TEXT", nullable: false),
                     CurrentCatalogId = table.Column<Guid>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
@@ -185,19 +188,19 @@ namespace Infra.EF.Migrations.SqlLite
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    ChannelId = table.Column<Guid>(type: "TEXT", nullable: false),
                     Opened = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    Closed = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    ChannelId = table.Column<Guid>(type: "TEXT", nullable: true)
+                    Closed = table.Column<DateTime>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Catalog", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_CHANNEL",
+                        name: "FK_Catalog_Channel_ChannelId",
                         column: x => x.ChannelId,
                         principalTable: "Channel",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
@@ -250,7 +253,7 @@ namespace Infra.EF.Migrations.SqlLite
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropForeignKey(
-                name: "FK_CHANNEL",
+                name: "FK_Catalog_Channel_ChannelId",
                 table: "Catalog");
 
             migrationBuilder.DropTable(

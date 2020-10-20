@@ -1,8 +1,9 @@
 ﻿using Domain;
+using Domain.Account;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Infra.EF.EFMappers
+namespace Infra.EF.EFMappers.Account
 {
     internal class IdentityProviderMapper : EntityMapper<IdentityProvider>
     {

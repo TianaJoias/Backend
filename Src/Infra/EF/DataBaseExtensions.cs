@@ -1,5 +1,4 @@
 ﻿using Domain;
-using Infra.EF.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;

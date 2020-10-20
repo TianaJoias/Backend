@@ -3,21 +3,10 @@ using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Text;
 
-namespace WebApi.Security
+namespace WebApi.Security.Custom
 {
-    public interface IPublicTokenBuilder
-    {
-        IPublicTokenBuilder AddSubject(string subject);
-        IPublicTokenBuilder AddRole(string role);
-        IPublicTokenBuilder AddRoles(string[] roles);
-        IPublicTokenBuilder AddRefreshToken(string refreshToken);
-        IPublicTokenBuilder AddCustomRole(string roleName, string roleValue);
-        string Build();
-    }
-
-    public class TokenBuilder : IPublicTokenBuilder
+    public class TokenBuilder : ITokenBuilder
     {
 
         public const string RefreshTokenClaim = "RefreshToken";
@@ -84,13 +73,13 @@ namespace WebApi.Security
             return this;
         }
 
-        public IPublicTokenBuilder AddSubject(string subject)
+        public ITokenBuilder AddSubject(string subject)
         {
             AddClaim(new Claim(JwtRegisteredClaimNames.Sub, subject));
             return this;
         }
 
-        public IPublicTokenBuilder AddRole(string role)
+        public ITokenBuilder AddRole(string role)
         {
             AddClaim(new Claim(ClaimTypes.Role, role));
             return this;
@@ -117,20 +106,20 @@ namespace WebApi.Security
             return tokenstring;
         }
 
-        public IPublicTokenBuilder AddCustomRole(string roleName, string roleValue)
+        public ITokenBuilder AddCustomRole(string roleName, string roleValue)
         {
             AddClaim(new Claim(roleName, roleValue));
             return this;
         }
 
-        public IPublicTokenBuilder AddRoles(string[] roles)
+        public ITokenBuilder AddRoles(string[] roles)
         {
             foreach (var role in roles)
                 AddRole(role);
             return this;
         }
 
-        public IPublicTokenBuilder AddRefreshToken(string refreshToken)
+        public ITokenBuilder AddRefreshToken(string refreshToken)
         {
             return AddCustomRole(RefreshTokenClaim, refreshToken);
         }

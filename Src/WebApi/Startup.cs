@@ -14,7 +14,6 @@ using WebApi.Security;
 using GraphQL.Server;
 using System.Security.Claims;
 using Microsoft.Extensions.Logging;
-using Microsoft.EntityFrameworkCore;
 using Infra.EF;
 using GraphQL.Types;
 using Mapster;
@@ -25,6 +24,10 @@ using GraphQL.Validation;
 using GraphQL.Authorization;
 using Microsoft.AspNetCore.Http;
 using System.Collections.Generic;
+using Infra;
+using OpenTelemetry.Trace;
+using Domain.Account;
+using Domain.Portifolio;
 
 namespace WebApi
 {
@@ -84,9 +87,11 @@ namespace WebApi
                     {
                         it.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
                     });
-
+            services.AddOpenTelemetryTracing((builder) => builder
+                .AddAspNetCoreInstrumentation()
+                .AddHttpClientInstrumentation()
+                .AddConsoleExporter());
             services.AddSwagger();
-          
             services.AddSecurity();
             services.AddOptions(Configuration);
             services.AddVersioning();
@@ -104,6 +109,7 @@ namespace WebApi
                 builder => builder.WithOrigins("https://localhost:3000"));
             });
 
+            services.AddSingleton<IPasswordService, PasswordService>();
             services.AddSingleton<ProductQuery>();
             services.AddSingleton<TianaJoiasSchema>();
             services.AddSingleton<ProductType>();
@@ -135,7 +141,7 @@ namespace WebApi
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env,
-            IApiVersionDescriptionProvider provider, TianaJoiasContextDB dataContext)
+            IApiVersionDescriptionProvider provider, TianaJoiasContextDB dataContext, IPasswordService passwordService)
         {
             if (env.IsDevelopment())
             {
@@ -157,7 +163,7 @@ namespace WebApi
                 endpoints.MapControllers();
             });
             app.UseVersionedSwagger(provider);
-            TianaJoiasContextDB.Seeding(dataContext);
+            TianaJoiasContextDB.Seeding(dataContext, passwordService).Wait();
             TypeAdapterConfig<ProductCategory, Guid>
                 .NewConfig()
                 .MapWith(orgin => orgin.TagId);

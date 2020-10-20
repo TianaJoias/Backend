@@ -1,11 +1,12 @@
 ﻿using System.Text.Json;
 using Domain;
+using Domain.Catalog;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
-namespace Infra.EF.EFMappers
+namespace Infra.EF.EFMappers.Catalog
 {
     internal class ChannelMapper : EntityMapper<Channel>
     {
@@ -14,21 +15,23 @@ namespace Infra.EF.EFMappers
             base.Configure(builder);
 
             builder.ToTable("Channel");
-            builder.Property(it => it.AccountOwnerId);
-            builder.HasOne(x => x.CurrentCatalog);
-            builder.HasMany(x => x.HistoryCatalogs).WithOne().HasForeignKey("ChannelId").HasConstraintName("FK_CHANNEL");
+            builder.Property(it => it.OwnerId);
+            builder.HasMany<Domain.Catalog.Catalog>().WithOne(it=> it.Channel).IsRequired();
         }
     }
-    internal class CatalogMapper : EntityMapper<Catalog>
+    internal class CatalogMapper : EntityMapper<Domain.Catalog.Catalog>
     {
-        public override void Configure(EntityTypeBuilder<Catalog> builder)
+        public override void Configure(EntityTypeBuilder<Domain.Catalog.Catalog> builder)
         {
             base.Configure(builder);
-
             builder.ToTable("Catalog");
             builder.Property(it => it.Closed);
             builder.Property(it => it.Opened);
+            builder.HasOne(it => it.Channel).WithMany();
             builder.HasMany(it => it.Items).WithOne().HasForeignKey("CatalogId").HasConstraintName("FK_CATALOG_ITEM");
+            builder.Metadata
+                .FindNavigation("Items")
+                .SetPropertyAccessMode(PropertyAccessMode.Field);
         }
     }
 

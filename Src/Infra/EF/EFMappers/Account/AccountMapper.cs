@@ -6,15 +6,15 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
-namespace Infra.EF.EFMappers
+namespace Infra.EF.EFMappers.Account
 {
-    internal class AccountMapper : EntityMapper<Account>
+    internal class AccountMapper : EntityMapper<Domain.Account.Account>
     {
-        public override void Configure(EntityTypeBuilder<Account> builder)
+        public override void Configure(EntityTypeBuilder<Domain.Account.Account> builder)
         {
-            var converter = new ValueConverter<IEnumerable<Roles>, string>(
+            var converter = new ValueConverter<IEnumerable<Domain.Account.Roles>, string>(
                 v => string.Join(";", v),
-                v => (v ?? "").Split(";".ToArray(), StringSplitOptions.RemoveEmptyEntries).Select(val => Enum.Parse<Roles>(val)));
+                v => (v ?? "").Split(";".ToArray(), StringSplitOptions.RemoveEmptyEntries).Select(val => Enum.Parse<Domain.Account.Roles>(val)));
 
             base.Configure(builder);
             builder.ToTable("Accounts");

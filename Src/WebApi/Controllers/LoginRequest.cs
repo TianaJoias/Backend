@@ -1,13 +1,14 @@
 ﻿using FluentValidation;
 
 namespace WebApi.Controllers
-{   public enum GranType
-    {        
+{
+    public enum GranType
+    {
         Password,
         RefreshToken
     }
 
-    public record LoginDTO
+    public record LoginRequest
     {
         public string Password { get; set; }
         public string Username { get; set; }
@@ -16,7 +17,7 @@ namespace WebApi.Controllers
         public string ExpiredToken { get; set; }
     }
 
-    public class PersonValidator : AbstractValidator<LoginDTO>
+    public class PersonValidator : AbstractValidator<LoginRequest>
     {
         public PersonValidator()
         {

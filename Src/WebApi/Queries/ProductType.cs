@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using Domain;
+using Domain.Portifolio;
 using GraphQL.Types;
 
 namespace WebApi.Queries

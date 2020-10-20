@@ -1,12 +1,13 @@
 ﻿using System.Collections.Generic;
 
-namespace Domain
+namespace Domain.Portifolio
 {
     public class Product : BaseEntity
     {
         public string EAN { get; set; }
         public string Description { get; set; }
         public IList<ProductCategory> Categories { get; set; } = new List<ProductCategory>();
+        public string SKU { get; private set; }
 
         public void AddCategory(Tag tag)
         {

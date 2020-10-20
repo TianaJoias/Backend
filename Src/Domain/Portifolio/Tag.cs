@@ -1,4 +1,4 @@
-﻿namespace Domain
+﻿namespace Domain.Portifolio
 {
     public class Tag : BaseEntity
     {

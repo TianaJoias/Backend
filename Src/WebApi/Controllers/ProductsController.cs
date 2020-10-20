@@ -1,13 +1,16 @@
 ﻿using Domain;
+using Domain.Account;
+using Domain.Portifolio;
+using Domain.Stock;
 using FluentValidation;
 using Mapster;
 using MediatR;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using WebApi.Aplication;
+using WebApi.Aplication.Catalog;
 using WebApi.Security;
 
 namespace WebApi.Controllers
@@ -19,13 +22,13 @@ namespace WebApi.Controllers
     {
         private readonly IProductRepository _productRepository;
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IBatchRepository _batchRepository;
+        private readonly ILotRepository _batchRepository;
         private readonly IMediator _mediator;
         private readonly ISupplierRepository _supplierRepository;
         private readonly ITagRepository _tagRepository;
 
         public ProductsController(
-            IProductRepository productRepository, IUnitOfWork unitOfWork, IBatchRepository batchRepository, IMediator mediator, ISupplierRepository supplierRepository, ITagRepository tagRepository)
+            IProductRepository productRepository, IUnitOfWork unitOfWork, ILotRepository batchRepository, IMediator mediator, ISupplierRepository supplierRepository, ITagRepository tagRepository)
         {
             _productRepository = productRepository;
             _unitOfWork = unitOfWork;
@@ -50,7 +53,7 @@ namespace WebApi.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Get([FromQuery] ProductQueryInDTO query)
+        public async Task<IActionResult> Get([FromQuery] ProductQuery query)
         {
             var productsPage = await _mediator.Send(query);
             return Ok(productsPage);
@@ -59,7 +62,7 @@ namespace WebApi.Controllers
         [HttpGet("{id:guid}")]
         public async Task<IActionResult> GetById(Guid id)
         {
-            var productsPage = await _mediator.Send(new ProductQueryByIdRequest(id));
+            var productsPage = await _mediator.Send(new ProductQueryById(id));
             return Ok(productsPage);
         }
 
@@ -90,11 +93,11 @@ namespace WebApi.Controllers
             var suppliers = await _supplierRepository.List(it => batch.SuppliersId.Contains(it.Id));
             await _batchRepository.Add(new Lot
             {
-                CostValue = batch.CostValue,
+                CostPrice = batch.CostValue,
                 Date = batch.Date,
                 Number = batch.Number,
                 Quantity = batch.Quantity,
-                SaleValue = batch.SaleValue,
+                SalePrice = batch.SaleValue,
                 Weight = batch.Weight,
                 ProductId = batch.ProductId,
                 Suppliers = suppliers
@@ -127,7 +130,15 @@ namespace WebApi.Controllers
             await _unitOfWork.Commit();
             return Ok(tag);
         }
+
+        [HttpPost("/catalog")]
+        public async Task<IActionResult> Catalog([FromBody] CatalogOpenCommand command)
+        {
+            await _mediator.Send(command);
+            return Ok();
+        }
     }
+
     public record TagDTO
     {
         public Guid? Id { get; init; }

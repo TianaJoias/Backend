@@ -1,12 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Domain
+namespace Domain.Catalog
 {
     public class Channel: BaseEntity
     {
-        public Guid AccountOwnerId { get; set; }
+        public Guid? ParentId { get; set; }
+        public Guid OwnerId { get; set; }
         public Catalog CurrentCatalog { get; set; }
-        public IEnumerable<Catalog> HistoryCatalogs { get; set; }
+
+        public void SetCurrentCatalog(Catalog catalog)
+        {
+            CurrentCatalog = catalog;
+        }
     }
 }

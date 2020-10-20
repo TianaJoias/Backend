@@ -1,19 +1,34 @@
 ﻿using System;
 using System.Collections.Generic;
+using Domain.Portifolio;
+using Domain.Stock;
 
-namespace Domain
+namespace Domain.Catalog
 {
     public class CatalogItem : BaseEntity
     {
-        public Guid LotId { get; set; }
-        public Guid ProdutoId { get; set; }
-        public int Quantity { get; set; }
-        public decimal Price { get; set; }
-        public string SKU { get; set; }
-        public string EAN { get; set; }
-        public string LongDescription { get; set; }
-        public string ShortDescription { get; set; }
-        public IList<string> Thumbnail { get; set; }
-        public bool Enabled { get; set; }
+        protected CatalogItem() { }
+        public CatalogItem(Product product, Lot lot, decimal quantity)
+        {
+            EAN = lot.EAN;
+            Enabled = true;
+            LongDescription = product.Description;
+            Price = lot.SalePrice;
+            ShortDescription = product.Description;
+            ProdutoId = product.Id;
+            LotId = lot.Id;
+            Quantity = quantity;
+            SKU = product.SKU;
+        }
+        public Guid LotId { get; private set; }
+        public Guid ProdutoId { get; private set; }
+        public decimal Quantity { get; private set; }
+        public decimal Price { get; private set; }
+        public string SKU { get; private set; }
+        public string EAN { get; private set; }
+        public string LongDescription { get; private set; }
+        public string ShortDescription { get; private set; }
+        public IList<string> Thumbnail { get; private set; }
+        public bool Enabled { get; private set; }
     }
 }

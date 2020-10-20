@@ -1,27 +1,27 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
 using System.Security.Principal;
-using System.Text;
 using Domain;
+using Domain.Account;
 using Mapster.Utils;
 using Microsoft.IdentityModel.Tokens;
 
-namespace WebApi.Security
+namespace WebApi.Security.Custom
 {
     public class TokenService : ITokenService
     {
-        public IPublicTokenBuilder CreateToken()
+        public string CreateToken(Func<ITokenBuilder, ITokenBuilder> custom)
         {
-            return TokenBuilder.Given()
+            var builder = TokenBuilder.Given()
                .AddAudience(TokenConstants.Audience)
                .AddIssuer(TokenConstants.Issuer)
                .AddExpiry(TokenConstants.ExpiryInMinutes)
                .AddKey(TokenConstants.IssuerSecurityKey)
                .AddEncryptingKey(TokenConstants.EncryptionSecurityKey)
                .AddClaim(new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString("N")));
+            return custom(builder).Build();
         }
 
         public IPrincipal GetPrincipal(string token)
@@ -53,11 +53,19 @@ namespace WebApi.Security
             }
         }
 
-        public Roles[] GetRoles(string token)
+        public TokenInformations InfosFromToken(string token)
         {
             var principal = GetPrincipal(token) as ClaimsPrincipal;
-            var refreshTokenClaim = principal.FindFirst(ClaimTypes.Role);
-            return refreshTokenClaim.Value?.Split(",").Select(it => Enum<Roles>.Parse(it)).ToArray();
+            var refreshTokenClaim = principal.FindFirst("role");
+
+            var sub = principal.FindFirst(JwtRegisteredClaimNames.Sub);
+            var roles = refreshTokenClaim.Value?.Split(",").Select(it => Enum<Roles>.Parse(it)).ToArray();
+            return new(sub.Value, roles);
+        }
+
+        public string NewRefresToken()
+        {
+            return Guid.NewGuid().ToString("N");
         }
 
         public bool ValidateRefreshToken(string token, string refreshToken)

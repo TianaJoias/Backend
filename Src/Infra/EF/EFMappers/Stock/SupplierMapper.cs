@@ -1,8 +1,9 @@
 ﻿using Domain;
+using Domain.Stock;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Infra.EF.EFMappers
+namespace Infra.EF.EFMappers.Stock
 {
     internal class SupplierMapper : EntityMapper<Supplier>
     {

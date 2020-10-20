@@ -1,7 +1,7 @@
 ﻿using System.Text;
 using Microsoft.IdentityModel.Tokens;
 
-namespace WebApi.Security
+namespace WebApi.Security.Custom
 {
     public class TokenConstants
     {

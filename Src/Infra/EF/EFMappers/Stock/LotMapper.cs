@@ -1,8 +1,9 @@
 ﻿using Domain;
+using Domain.Stock;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Infra.EF.EFMappers
+namespace Infra.EF.EFMappers.Stock
 {
     internal class LotMapper : EntityMapper<Lot>
     {
@@ -16,8 +17,8 @@ namespace Infra.EF.EFMappers
             builder.Property(x => x.Weight);
             builder.Property(x => x.Quantity);
             builder.Property(x => x.Date);
-            builder.Property(x => x.SaleValue);
-            builder.Property(x => x.CostValue);
+            builder.Property(x => x.SalePrice);
+            builder.Property(x => x.CostPrice);
             builder.HasMany(x => x.Suppliers).WithMany(x => x.Lots);
         }
     }

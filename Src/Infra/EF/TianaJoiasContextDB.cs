@@ -1,9 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using Domain;
-using Infra.EF.EFMappers;
 using Microsoft.EntityFrameworkCore;
-using System.Linq;
+using System.Threading.Tasks;
+using Infra.EF.EFMappers.Portifolio;
+using Domain.Portifolio;
+using Domain.Account;
+using Domain.Stock;
+using Domain.Catalog;
 
 namespace Infra.EF
 {
@@ -19,27 +23,79 @@ namespace Infra.EF
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(ProductMapper).Assembly);
         }
 
-        public static void Seeding(TianaJoiasContextDB context)
+        public static async Task Seeding(TianaJoiasContextDB context, IPasswordService passwordService)
         {
             context.Database.Migrate();
             var guid = Guid.Parse("{0963682F-4DBC-4827-B500-B7F45A6345C3}");
-            var testBlog = context.Set<Account>().FirstOrDefault(b => b.Id == guid);
-            if (testBlog is null)
+            var adminAccount = await context.Set<Account>().FirstOrDefaultAsync(b => b.Id == guid);
+            if (adminAccount is null)
             {
-                var password = BCrypt.Net.BCrypt.HashPassword("ADMIN", 11);
-                var account = new Account
-                {
-                    Id = guid,
-                    Roles = new List<Roles> { Roles.ADMIN },
-                    User = new User
-                    {
-                        Email = "admin@tianajoias.com.br",
-                        Password = password
-                    }
-                };
-                context.Set<Account>().Add(account);
-                context.SaveChanges();
+                await AddAccount(context, passwordService, guid);
+                await AddProducts(context);
+                await Lot(context);
+                await context.SaveChangesAsync();
             }
+        }
+
+        private static async Task Lot(TianaJoiasContextDB context)
+        {
+            var supplier = new Supplier
+            {
+                Id = Guid.Parse("{B4193BD2-5753-49E3-9850-D13FE9CDE43E}"),
+                Description = "Supplier ONE",
+                Name = "Supplier One"
+            };
+            await context.Set<Supplier>().AddRangeAsync(supplier);
+        }
+
+        private static async Task AddProducts(TianaJoiasContextDB context)
+        {
+            var firstTag = new Tag
+            {
+                Name = "firstTag"
+            };
+            var secondTag = new Tag
+            {
+                Name = "secondTag"
+            };
+            await context.Set<Tag>().AddRangeAsync(firstTag, secondTag);
+
+            var firstProduct = new Product
+            {
+                EAN = "123456",
+                Description = "First Product"
+            };
+            var secondProduct = new Product
+            {
+                EAN = "654321",
+                Description = "second Product"
+            };
+
+            firstProduct.AddCategory(firstTag);
+            secondProduct.AddCategory(secondTag);
+
+            await context.Set<Product>().AddRangeAsync(firstProduct, secondProduct);
+        }
+
+        private static async Task AddAccount(TianaJoiasContextDB context, IPasswordService passwordService, Guid guid)
+        {
+            var password = await passwordService.Hash("ADMIN");
+            var account = new Account
+            {
+                Id = guid,
+                Roles = new List<Roles> { Roles.ADMIN },
+                User = new User
+                {
+                    Email = "admin@tianajoias.com.br",
+                    Password = password
+                }
+            };
+            await context.Set<Account>().AddAsync(account);
+            var channel = new Channel
+            {
+                OwnerId = guid,
+            };
+            await context.Set<Channel>().AddAsync(channel);
         }
     }
 }

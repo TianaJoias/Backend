@@ -1,6 +1,5 @@
 ﻿using Domain;
 using GraphQL.Types;
-using WebApi.Aplication;
 
 namespace WebApi.Queries
 {

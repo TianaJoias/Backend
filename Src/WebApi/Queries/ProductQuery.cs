@@ -6,10 +6,10 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading.Tasks;
 using Domain;
+using Domain.Portifolio;
 using GraphQL;
 using GraphQL.Types;
 using Microsoft.Extensions.DependencyInjection;
-using WebApi.Aplication;
 
 namespace WebApi.Queries
 {
