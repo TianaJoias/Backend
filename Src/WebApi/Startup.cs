@@ -28,6 +28,9 @@ using Infra;
 using OpenTelemetry.Trace;
 using Domain.Account;
 using Domain.Portifolio;
+using Microsoft.AspNet.OData.Builder;
+using Microsoft.OData.Edm;
+using Microsoft.AspNet.OData.Extensions;
 
 namespace WebApi
 {

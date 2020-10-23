@@ -9,6 +9,7 @@ namespace Infra.EF.EFMappers
         public virtual void Configure(EntityTypeBuilder<T> builder)
         {
             builder.HasKey(x => x.Id);
+            builder.Ignore(X => X.Events);
             builder.Property(x => x.Id).HasColumnName("Id").ValueGeneratedOnAdd();
         }
     }

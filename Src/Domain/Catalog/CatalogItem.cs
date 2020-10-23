@@ -15,7 +15,7 @@ namespace Domain.Catalog
             LongDescription = product.Description;
             Price = lot.SalePrice;
             ShortDescription = product.Description;
-            ProdutoId = product.Id;
+            ProdutoId = lot.ProductId;
             LotId = lot.Id;
             CurrentQuantity = quantity;
             InitialQuantity = quantity;
@@ -31,14 +31,31 @@ namespace Domain.Catalog
         public string LongDescription { get; private set; }
         public decimal TotalSold { get; private set; }
 
+        public string ShortDescription { get; private set; }
+        public IList<string> Thumbnail { get; private set; }
+        public bool Enabled { get; private set; }
+
         public void Remaining(decimal quantity)
         {
             CurrentQuantity -= quantity;
             TotalSold = (InitialQuantity - CurrentQuantity) * Price;
+            AddEvent(new ProductSoldEvent(quantity, LotId, ProdutoId, Price));
+        }
+    }
+
+    public class ProductSoldEvent : BaseEvent
+    {
+        public ProductSoldEvent(decimal quantity, Guid lotId, Guid produtoId, decimal price)
+        {
+            Quantity = quantity;
+            LotId = lotId;
+            ProdutoId = produtoId;
+            Price = price;
         }
 
-        public string ShortDescription { get; private set; }
-        public IList<string> Thumbnail { get; private set; }
-        public bool Enabled { get; private set; }
+        public decimal Quantity { get; }
+        public Guid LotId { get; }
+        public Guid ProdutoId { get; }
+        public decimal Price { get; }
     }
 }

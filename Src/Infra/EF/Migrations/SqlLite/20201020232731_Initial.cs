@@ -152,9 +152,9 @@ namespace Infra.EF.Migrations.SqlLite
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    ChannelId = table.Column<Guid>(type: "TEXT", nullable: false),
-                    Opened = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    Closed = table.Column<DateTime>(type: "TEXT", nullable: true),
+                    AgentId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    ClosedAt = table.Column<DateTime>(type: "TEXT", nullable: true),
                     TotalSold = table.Column<decimal>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
@@ -168,7 +168,6 @@ namespace Infra.EF.Migrations.SqlLite
                 {
                     Id = table.Column<Guid>(type: "TEXT", nullable: false),
                     AccountableId = table.Column<Guid>(type: "TEXT", nullable: false),
-                    OwnerId = table.Column<Guid>(type: "TEXT", nullable: false),
                     CurrentCatalogId = table.Column<Guid>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
@@ -223,9 +222,9 @@ namespace Infra.EF.Migrations.SqlLite
                 column: "CatalogId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Catalogs_ChannelId",
+                name: "IX_Catalogs_AgentId",
                 table: "Catalogs",
-                column: "ChannelId");
+                column: "AgentId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_IdentityProviders_AccountId",
@@ -243,9 +242,9 @@ namespace Infra.EF.Migrations.SqlLite
                 column: "TagId");
 
             migrationBuilder.AddForeignKey(
-                name: "FK_Catalogs_Agents_ChannelId",
+                name: "FK_Catalogs_Agents_AgentId",
                 table: "Catalogs",
-                column: "ChannelId",
+                column: "AgentId",
                 principalTable: "Agents",
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Cascade);

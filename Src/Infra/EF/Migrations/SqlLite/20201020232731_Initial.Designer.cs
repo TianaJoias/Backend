@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infra.EF.Migrations.SqlLite
 {
     [DbContext(typeof(TianaJoiasContextDB))]
-    [Migration("20201020160005_Initial")]
+    [Migration("20201020232731_Initial")]
     partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -69,9 +69,6 @@ namespace Infra.EF.Migrations.SqlLite
                     b.Property<Guid?>("CurrentCatalogId")
                         .HasColumnType("TEXT");
 
-                    b.Property<Guid>("OwnerId")
-                        .HasColumnType("TEXT");
-
                     b.HasKey("Id");
 
                     b.HasIndex("CurrentCatalogId");
@@ -86,13 +83,13 @@ namespace Infra.EF.Migrations.SqlLite
                         .HasColumnType("TEXT")
                         .HasColumnName("Id");
 
-                    b.Property<Guid>("ChannelId")
+                    b.Property<Guid>("AgentId")
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTime?>("Closed")
+                    b.Property<DateTime?>("ClosedAt")
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTime>("Opened")
+                    b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT");
 
                     b.Property<decimal>("TotalSold")
@@ -100,7 +97,7 @@ namespace Infra.EF.Migrations.SqlLite
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ChannelId");
+                    b.HasIndex("AgentId");
 
                     b.ToTable("Catalogs");
                 });
@@ -320,13 +317,13 @@ namespace Infra.EF.Migrations.SqlLite
 
             modelBuilder.Entity("Domain.Catalog.Catalog", b =>
                 {
-                    b.HasOne("Domain.Catalog.Agent", "Channel")
+                    b.HasOne("Domain.Catalog.Agent", "Agent")
                         .WithMany()
-                        .HasForeignKey("ChannelId")
+                        .HasForeignKey("AgentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Channel");
+                    b.Navigation("Agent");
                 });
 
             modelBuilder.Entity("Domain.Catalog.CatalogItem", b =>

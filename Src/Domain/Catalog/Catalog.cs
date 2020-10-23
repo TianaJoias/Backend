@@ -16,32 +16,62 @@ namespace Domain.Catalog
 
         public Catalog(Agent channel) : this()
         {
-            Channel = channel;
-            Opened = Clock.Now;
+            Agent = channel;
+            CreatedAt = Clock.Now;
+            AddEvent(new CatalogOpenedEvent(this));
         }
 
-        public Agent Channel { get; private set; }
+        public Agent Agent { get; private set; }
         public IReadOnlyCollection<CatalogItem> Items => _items.AsReadOnly();
-        public DateTime Opened { get; private set; }
-        public DateTime? Closed { get; private set; }
+        public DateTime CreatedAt { get; private set; }
+        public DateTime? ClosedAt { get; private set; }
         public decimal TotalSold { get; set; }
         public void Add(Product produt, Lot lot, decimal quantity)
         {
-            if (!Closed.HasValue) return;
+            if (ClosedAt.HasValue) return;
             _items.Add(new CatalogItem(produt, lot, quantity));
         }
 
-        public void Remaining(Guid productId, decimal quantity)
+        public void Remaining(Guid LotId, decimal quantity)
         {
-            if (!Closed.HasValue) return;
-            var item = _items.Find(it => it.ProdutoId == productId);    
+            if (ClosedAt.HasValue) return;
+            var item = _items.Find(it => it.LotId == LotId);    
             item.Remaining(quantity);
             TotalSold += item.TotalSold;
         }
 
         public void Close()
         {
-            Closed = Clock.Now;
+            ClosedAt = Clock.Now;
+            AddEvent(new CatalogClosedEvent(this));
         }
+    }
+
+    public class CatalogOpenedEvent : BaseEvent
+    {
+        public CatalogOpenedEvent(Catalog catalog)
+        {
+            CreatedAt = catalog.CreatedAt;
+            AgentId = catalog.Agent.Id;
+        }
+
+        public DateTime CreatedAt { get; }
+        public Guid AgentId { get; }
+    }
+
+    public class CatalogClosedEvent : BaseEvent
+    {
+        public CatalogClosedEvent(Catalog catalog)
+        {
+            ClosedAt = catalog.ClosedAt.Value;
+            OpenedAt = catalog.CreatedAt;
+            TotalSold = catalog.TotalSold;
+            AgentId = catalog.Agent.Id;
+        }
+
+        public DateTime ClosedAt { get; }
+        public DateTime OpenedAt { get; }
+        public decimal TotalSold { get; }
+        public Guid AgentId { get; }
     }
 }

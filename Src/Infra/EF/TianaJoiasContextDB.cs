@@ -8,6 +8,7 @@ using Domain.Portifolio;
 using Domain.Account;
 using Domain.Stock;
 using Domain.Catalog;
+using ZXing;
 
 namespace Infra.EF
 {
@@ -46,19 +47,7 @@ namespace Infra.EF
                 Name = "Supplier One",
             };
             await context.Set<Supplier>().AddRangeAsync(supplier);
-            var lot = new Lot
-            {
-                CostPrice = 10,
-                Number = "123",
-                Weight = 10,
-                ProductId = Guid.Parse("{37F1AD8B-5707-4C2E-BEB6-BAF05BF18E9C}"),
-                Quantity = 10,
-                SalePrice = 30,
-                EAN = "1-2o3809123",
-                Suppliers = new List<Supplier> { supplier },
-                Date = Clock.Now,
-                Id = Guid.Parse("{37F1AD8B-5707-4C2E-BEB6-BAF05BF18E9C}"),
-            };
+            var lot = new Lot(Guid.Parse("{37F1AD8B-5707-4C2E-BEB6-BAF05BF18E9C}"), 10, 10, 10, "123123", "123123", new List<Supplier> { supplier });
             await context.Set<Lot>().AddRangeAsync(lot);
         }
 
@@ -107,12 +96,7 @@ namespace Infra.EF
                 }
             };
             await context.Set<Account>().AddAsync(account);
-            var channel = new Agent
-            {
-                OwnerId = guid,
-                AccountableId = guid,
-                Id = Guid.Parse("{498B49C8-B17D-4A40-BCC1-EEA97508A344}")
-            };
+            var channel = new Agent(guid, guid);
             await context.Set<Agent>().AddAsync(channel);
         }
     }

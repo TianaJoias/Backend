@@ -5,8 +5,11 @@ using Domain.Stock;
 using FluentValidation;
 using Mapster;
 using MediatR;
+using Microsoft.AspNet.OData;
+using Microsoft.AspNet.OData.Query;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.OData.UriParser;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
@@ -59,7 +62,7 @@ namespace WebApi.Controllers
         public async Task<IActionResult> Get([FromQuery] ProductQuery query)
         {
             var productsPage = await _mediator.Send(query);
-            return Ok(productsPage);
+            return productsPage.ToActionResult();
         }
 
         [HttpGet("{id:guid}")]
@@ -84,32 +87,24 @@ namespace WebApi.Controllers
             return Ok();
         }
 
-        [HttpGet("batch")]
-        public async Task<IActionResult> BatchGet()
+        [HttpGet("lots")]
+        public async Task<IActionResult> LotsGet()
         {
             var suppliers = await _batchRepository.List();
-            return Ok(suppliers.Adapt<IList<BatchDTO>>());
+            return Ok(suppliers.Adapt<IList<LotResponse>>());
         }
-        [HttpPost("batch")]
-        public async Task<IActionResult> BatchPost([FromBody] BatchDTO batch)
+
+        [HttpPost("lots")]
+        public async Task<IActionResult> LotsPost([FromBody] LotRequest batch)
         {
             var suppliers = await _supplierRepository.List(it => batch.SuppliersId.Contains(it.Id));
-            await _batchRepository.Add(new Lot
-            {
-                CostPrice = batch.CostValue,
-                Date = batch.Date,
-                Number = batch.Number,
-                Quantity = batch.Quantity,
-                SalePrice = batch.SaleValue,
-                Weight = batch.Weight,
-                ProductId = batch.ProductId,
-                Suppliers = suppliers
-            });
+            var lot = new Lot(batch.ProductId, batch.CostValue, batch.SaleValue, batch.Quantity, batch.Number, "123123", suppliers);
+            await _batchRepository.Add(lot);
             await _unitOfWork.Commit();
             return Ok();
         }
 
-        [HttpPost("supplier")]
+        [HttpPost("suppliers")]
         public async Task<IActionResult> Supplier([FromBody] SupplierDTO productDto)
         {
             var product = productDto.Adapt<Supplier>();
@@ -118,11 +113,11 @@ namespace WebApi.Controllers
             return Ok();
         }
 
-        [HttpGet("supplier")]
+        [HttpGet("suppliers")]
         public async Task<IActionResult> SupplierGet()
         {
             var suppliers = await _supplierRepository.List();
-            return Ok(suppliers);
+            return Ok(suppliers.Adapt<IList<SupplierResponse>>());
         }
 
         [HttpPost("tags")]
@@ -134,37 +129,14 @@ namespace WebApi.Controllers
             return Ok(tag);
         }
 
-        [HttpGet("agents")]
-        public async Task<IActionResult> Agents([FromQuery]PaginateRequest request)
+        [HttpGet("tags")]
+        public async Task<IActionResult> Tags()
         {
-            var query = request.Adapt<AgentsQuery>();
-            var result = await _mediator.Send(query);
-            return result.ToActionResult();
-        }
-
-        [HttpPost("catalog")]
-        public async Task<IActionResult> Catalog([FromBody] CatalogOpenRequest request)
-        {
-            var command = request.Adapt<CatalogOpenCommand>();
-            command.AccountableId = User.GetId();
-            var result = await _mediator.Send(command);
-            return result.ToActionResult();
-        }
-
-        [HttpPut("catalog")]
-        public async Task<IActionResult> CatalogPut([FromBody] CatalogCloseCommand command)
-        {
-            var result = await _mediator.Send(command);
-            return result.ToActionResult();
+            var tags = await _tagRepository.List();
+            return Ok(tags);
         }
     }
-     public record PaginateRequest
-    {
-        public string SearchTerm { get; init; }
-        public int Page { get; init; } = 1;
-        public int PageSize { get; init; } = 5;
-        public Dictionary<string, Sort> OrderBy { get; init; } = null;
-    }
+
     public static class UserExtensions
     {
         public static Guid GetId(this ClaimsPrincipal user)
@@ -172,20 +144,6 @@ namespace WebApi.Controllers
             var value = user.FindFirstValue(JwtRegisteredClaimNames.Sub);
             return Guid.Parse(value);
         }
-    }
-
-
-    public record CatalogOpenRequest
-    {
-        public Guid OwnerId { get; init; }
-        public IList<CatalogOpenItemRequest> Items { get; init; }
-    }
-
-    public record CatalogOpenItemRequest
-    {
-        public Guid ProductId { get; init; }
-        public Guid LotId { get; init; }
-        public decimal Quantity { get; init; }
     }
 
 
@@ -225,8 +183,26 @@ namespace WebApi.Controllers
             RuleFor(it => it.Categories).NotEmpty();
         }
     }
-
-    public record BatchDTO
+    public record LotResponse
+    {
+        public Guid Id { get; init; }
+        public Guid ProductId { get; init; }
+        public decimal CostPrice { get; init; }
+        public decimal SalePrice { get; init; }
+        public decimal Quantity { get; init; }
+        public decimal? Weight { get; init; }
+        public IList<SupplierResponse> Suppliers { get; init; }
+        public DateTime Date { get; init; }
+        public string Number { get; init; }
+        public string EAN { get; init; }
+    }
+    public record SupplierResponse
+    {
+        public Guid Id { get; set; }
+        public string Name { get; set; }
+        public string Description { get; set; }
+    }
+    public record LotRequest
     {
         public Guid? Id { get; init; }
         public Guid ProductId { get; init; }
@@ -238,7 +214,9 @@ namespace WebApi.Controllers
         public DateTime Date { get; init; }
         public string Number { get; init; }
     }
-    public class BatchDTOValidation : AbstractValidator<BatchDTO>
+
+
+    public class BatchDTOValidation : AbstractValidator<LotRequest>
     {
         public BatchDTOValidation()
         {

@@ -41,8 +41,8 @@ namespace WebApi.Aplication.Catalog
                 return Result.Merge(errors.ToArray());
             foreach (var item in request.Items)
             {
-                var produt = products.First(it => it.Id == item.ProductId);
                 var lot = lots.First(it => it.Id == item.LotId);
+                var produt = products.First(it => it.Id == lot.ProductId);
                 catalog.Add(produt, lot, item.Quantity);
             }
             channel.SetCurrentCatalog(catalog);
@@ -53,26 +53,21 @@ namespace WebApi.Aplication.Catalog
         }
         private async Task<(Agent channel, IList<Product> products, IList<Lot> lots)> GetData(CatalogOpenCommand request)
         {
-            var productsIds = request.Items.Select(it => it.ProductId).ToList();
             var lotsIds = request.Items.Select(it => it.LotId).ToList();
-            var productsTask = _product.List(it => productsIds.Contains(it.Id));
             var lotsTask = _lotRepository.List(it => lotsIds.Contains(it.Id));
-            var channelTask = _channelRepository.GetByQuery(it => it.OwnerId == request.OwnerId && it.AccountableId == request.AccountableId);
-            await Task.WhenAll(productsTask, lotsTask, channelTask);
-            return (channel: await channelTask, products: await productsTask, lots: await lotsTask);
+            var channelTask = _channelRepository.GetByQuery(it => it.Id == request.OwnerId && it.AccountableId == request.AccountableId);
+            await Task.WhenAll(lotsTask, channelTask);
+            var lots = await lotsTask;
+            var productsIds = lots.Select(it => it.ProductId).ToList();
+            var productsTask = _product.List(it => productsIds.Contains(it.Id));
+            return (channel: await channelTask, products: await productsTask, lots);
         }
     }
 
-    public record CatalogOpenCommand : ICommand
-    {
-        public Guid OwnerId { get; init; }
-        public Guid AccountableId { get; set; }
-        public IList<CatalogOpenItemCommand> Items { get; init; }
-    }
+    public record CatalogOpenCommand(Guid OwnerId, Guid AccountableId, IList<CatalogOpenItemCommand> Items) : ICommand;
 
     public record CatalogOpenItemCommand
     {
-        public Guid ProductId { get; init; }
         public Guid LotId { get; init; }
         public decimal Quantity { get; init; }
     }

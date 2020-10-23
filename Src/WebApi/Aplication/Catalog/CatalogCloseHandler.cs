@@ -22,9 +22,11 @@ namespace WebApi.Aplication.Catalog
         }
         public async Task<Result> Handle(CatalogCloseCommand request, CancellationToken cancellationToken)
         {
-            var catalog = await _catalogRepository.GetById(request.CatalogId);
+            var catalog = await _catalogRepository.GetByQuery(it=> it.Agent.Id == request.OwnerId && it.Id == request.CatalogId);
+            if(catalog is null)
+                return Result.Fail("CATALOG_NOT_FOUND");
             foreach (var item in request.Items)
-                catalog.Remaining(item.ProductId, item.Quantity);
+                catalog.Remaining(item.LotId, item.Quantity);
             catalog.Close();
             await _catalogRepository.Update(catalog);
             await _unitOfWork.Commit();
@@ -35,12 +37,13 @@ namespace WebApi.Aplication.Catalog
     public record CatalogCloseCommand : ICommand
     {
         public Guid CatalogId { get; init; }
+        public Guid OwnerId { get; init; }
         public IList<CatalogCloseItemCommand> Items { get; init; }
     }
 
     public record CatalogCloseItemCommand
     {
-        public Guid ProductId { get; set; }
+        public Guid LotId { get; set; }
         public decimal Quantity { get; set; }
     }
 }

@@ -1,15 +1,20 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Domain;
+using MediatR;
 
 namespace Infra.EF
 {
     public sealed class UnitOfWork : IUnitOfWork, IDisposable
     {
         private readonly TianaJoiasContextDB _context;
-        public UnitOfWork(TianaJoiasContextDB context)
+        private readonly IMediator _mediator;
+
+        public UnitOfWork(TianaJoiasContextDB context, IMediator mediator)
         {
             _context = context;
+            _mediator = mediator;
         }
 
         public void Dispose()
@@ -21,7 +26,14 @@ namespace Infra.EF
         {
             try
             {
+                var entidades = _context.ChangeTracker.Entries<BaseEntity>().Select(it => it.Entity);
+
                 await _context.SaveChangesAsync();
+                var events = entidades.SelectMany(it => it.Events).ToList();
+                foreach (var entity in entidades)
+                    entity.ClearEvents();
+                var tasks = events.Select(it => _mediator.Publish(it)).ToArray();
+                Task.WaitAll(tasks);
                 return true;
             }
             catch (Exception)

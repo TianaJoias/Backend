@@ -16,7 +16,7 @@ namespace Infra.EF.EFMappers.Stock
             builder.Property(x => x.Number);
             builder.Property(x => x.Weight);
             builder.Property(x => x.Quantity);
-            builder.Property(x => x.Date);
+            builder.Property(x => x.CreatedAt);
             builder.Property(x => x.SalePrice);
             builder.Property(x => x.CostPrice);
             builder.HasMany(x => x.Suppliers).WithMany(x => x.Lots);

@@ -19,7 +19,6 @@ namespace WebApi.Aplication.Catalog
 
         public async Task<Result<QueryPagedResult<AgentsQueryResult>>> Handle(AgentsQuery request, CancellationToken cancellationToken)
         {
-            //var paged = new QueryPagedResult<AgentsQueryResult>(0, 0, 0, 0, new List<AgentsQueryResult>());
             var paged = await _agentRepository.GetPaged(it => true, request.Page, request.PageSize, request.OrderBy);
             var records = paged.Records.Adapt<IList<AgentsQueryResult>>();
             var result = new QueryPagedResult<AgentsQueryResult>(paged.CurrentPage, paged.PageCount, paged.PageSize, paged.RowCount, Records: records);
@@ -35,6 +34,6 @@ namespace WebApi.Aplication.Catalog
     public record AgentsQueryResult
     {
         public Guid AccountableId { get; set; }
-        public Guid OwnerId { get; set; }
+        public Guid Id { get; set; }
     }
 }
