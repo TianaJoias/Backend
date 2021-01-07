@@ -14,11 +14,30 @@ namespace Infra.EF.Migrations.SqlLite
                     Id = table.Column<Guid>(type: "TEXT", nullable: false),
                     Roles = table.Column<string>(type: "TEXT", nullable: true),
                     User_Password = table.Column<string>(type: "TEXT", nullable: true),
-                    User_Email = table.Column<string>(type: "TEXT", nullable: true)
+                    User_Email = table.Column<string>(type: "TEXT", nullable: true),
+                    Name = table.Column<string>(type: "TEXT", nullable: true),
+                    Address_CEP = table.Column<string>(type: "TEXT", nullable: true),
+                    Address_Line1 = table.Column<string>(type: "TEXT", nullable: true),
+                    Address_Line2 = table.Column<string>(type: "TEXT", nullable: true),
+                    Address_State = table.Column<string>(type: "TEXT", nullable: true),
+                    Address_City = table.Column<string>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Accounts", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "EAN",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    LastCode = table.Column<ulong>(type: "INTEGER", nullable: false),
+                    IsActive = table.Column<bool>(type: "INTEGER", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_EAN", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -30,8 +49,9 @@ namespace Infra.EF.Migrations.SqlLite
                     CostPrice = table.Column<decimal>(type: "TEXT", nullable: false),
                     SalePrice = table.Column<decimal>(type: "TEXT", nullable: false),
                     Quantity = table.Column<decimal>(type: "TEXT", nullable: false),
+                    CurrentyQuantity = table.Column<decimal>(type: "TEXT", nullable: false),
                     Weight = table.Column<decimal>(type: "TEXT", nullable: true),
-                    Date = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
                     Number = table.Column<string>(type: "TEXT", nullable: true),
                     EAN = table.Column<string>(type: "TEXT", nullable: true)
                 },
@@ -45,13 +65,25 @@ namespace Infra.EF.Migrations.SqlLite
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    EAN = table.Column<string>(type: "TEXT", nullable: true),
                     Description = table.Column<string>(type: "TEXT", nullable: true),
                     SKU = table.Column<string>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Products", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ProductStock",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    ProductId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    Quantity = table.Column<decimal>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ProductStock", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -260,6 +292,9 @@ namespace Infra.EF.Migrations.SqlLite
                 name: "CatalogItems");
 
             migrationBuilder.DropTable(
+                name: "EAN");
+
+            migrationBuilder.DropTable(
                 name: "IdentityProviders");
 
             migrationBuilder.DropTable(
@@ -267,6 +302,9 @@ namespace Infra.EF.Migrations.SqlLite
 
             migrationBuilder.DropTable(
                 name: "ProductCategory");
+
+            migrationBuilder.DropTable(
+                name: "ProductStock");
 
             migrationBuilder.DropTable(
                 name: "Accounts");

@@ -25,6 +25,7 @@ namespace WebApi.Controllers
         public async Task<IActionResult> Get([FromQuery] PaginateRequest request)
         {
             var query = request.Adapt<AgentsQuery>();
+            query.AccountableId = User.GetId();
             var result = await _mediator.Send(query);
             return result.ToActionResult();
         }
@@ -32,8 +33,9 @@ namespace WebApi.Controllers
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] AgentRequest request)
         {
-            var query = request.Adapt<AgentsQuery>();
-            var result = await _mediator.Send(query);
+            var createAgentCommand = new CreateAgentCommand(request.Name, request.Email, User.GetId()
+            );
+            var result = await _mediator.Send(createAgentCommand);
             return result.ToActionResult();
         }
 
@@ -64,7 +66,7 @@ namespace WebApi.Controllers
         {
             return CatalogPut(User.GetId(), catalogId, items);
         }
-        
+
         [HttpGet("me/catalogs/{id:guid}")]
         public async Task<IActionResult> CatalogGet(Guid id)
         {
@@ -84,6 +86,8 @@ namespace WebApi.Controllers
 
     public record CatalogOpenRequest
     {
+        public Guid ResponsableId { get; set; }
+        public Guid AgentId { get; set; }
         public IList<CatalogOpenItemRequest> Items { get; init; }
     }
 
@@ -109,6 +113,7 @@ namespace WebApi.Controllers
 
     public record AgentRequest
     {
-        public Guid OwnerId { get; set; }
+        public string Email { get; init; }
+        public string Name { get; init; }
     }
 }

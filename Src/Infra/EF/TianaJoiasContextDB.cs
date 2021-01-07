@@ -47,7 +47,7 @@ namespace Infra.EF
                 Name = "Supplier One",
             };
             await context.Set<Supplier>().AddRangeAsync(supplier);
-            var lot = new Lot(Guid.Parse("{37F1AD8B-5707-4C2E-BEB6-BAF05BF18E9C}"), 10, 10, 10, "123123", "123123", new List<Supplier> { supplier });
+            var lot = new Lot(Guid.Parse("{37F1AD8B-5707-4C2E-BEB6-BAF05BF18E9C}"), 10, 10, 10, "123123", new List<Supplier> { supplier });
             await context.Set<Lot>().AddRangeAsync(lot);
         }
 
@@ -63,17 +63,13 @@ namespace Infra.EF
             };
             await context.Set<Tag>().AddRangeAsync(firstTag, secondTag);
 
-            var firstProduct = new Product
+            var firstProduct = new Product("PRO-FIRST-123456", "First Product")
             {
-                Id = Guid.Parse("{37F1AD8B-5707-4C2E-BEB6-BAF05BF18E9C}"),
-                EAN = "123456",
-                Description = "First Product"
+                Id = Guid.Parse("{37F1AD8B-5707-4C2E-BEB6-BAF05BF18E9C}")
             };
-            var secondProduct = new Product
+            var secondProduct = new Product("PRO-SECOND-123456", "second Product")
             {
-                Id = Guid.Parse("{C6504702-A0B6-4D95-9B9B-8A417316A15D}"),
-                EAN = "654321",
-                Description = "second Product"
+                Id = Guid.Parse("{C6504702-A0B6-4D95-9B9B-8A417316A15D}")
             };
 
             firstProduct.AddCategory(firstTag);

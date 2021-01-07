@@ -7,7 +7,7 @@ namespace Domain.Catalog
 {
     public class Catalog : BaseEntity
     {
-        private List<CatalogItem> _items;
+        private readonly List<CatalogItem> _items;
 
         protected Catalog()
         {

@@ -7,5 +7,7 @@ namespace Domain.Account
         public IEnumerable<Roles> Roles { get; set; }
         public IEnumerable<IdentityProvider> ExternalProviders { get; set; }
         public User User { get; set; }
+        public string Name { get; set; }
+        public Address Address { get; set; }
     }
 }

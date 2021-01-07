@@ -11,7 +11,7 @@ namespace Infra.EF.EFMappers.Portifolio
         {
             base.Configure(builder);
             builder.ToTable("Products");
-            builder.Property(x => x.EAN);
+            builder.Property(x => x.SKU);
             builder.Property(x => x.Description);
             builder.HasMany(x => x.Categories).WithOne(it => it.Product);
         }

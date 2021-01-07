@@ -5,18 +5,14 @@ using Domain.Stock;
 using FluentValidation;
 using Mapster;
 using MediatR;
-using Microsoft.AspNet.OData;
-using Microsoft.AspNet.OData.Query;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Microsoft.OData.UriParser;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using WebApi.Aplication;
-using WebApi.Aplication.Catalog;
+using WebApi.Aplication.Stock;
 using WebApi.Security;
 
 namespace WebApi.Controllers
@@ -47,11 +43,7 @@ namespace WebApi.Controllers
         public async Task<IActionResult> PostAsync([FromBody] ProductDTO productDTO)
         {
             var tags = await _tagRepository.List(it => productDTO.Categories.Contains(it.Id));
-            var product = new Product
-            {
-                EAN = productDTO.BarCode,
-                Description = productDTO.Description,
-            };
+            var product = new Product(productDTO.Sku, productDTO.Description);
             tags.ForEach(product.AddCategory);
             await _productRepository.Add(product);
             await _unitOfWork.Commit();
@@ -64,12 +56,17 @@ namespace WebApi.Controllers
             var productsPage = await _mediator.Send(query);
             return productsPage.ToActionResult();
         }
-
+        [HttpGet("lots/ean/{ean}")]
+        public async Task<IActionResult> GetSearch(string ean)
+        {
+            var result = await _mediator.Send(new LotSearchQuery(ean));
+            return result.ToActionResult();
+        }
         [HttpGet("{id:guid}")]
         public async Task<IActionResult> GetById(Guid id)
         {
             var productsPage = await _mediator.Send(new ProductQueryById(id));
-            return Ok(productsPage);
+            return Ok(productsPage.ValueOrDefault);
         }
 
         [HttpPut("{id:guid}")]
@@ -77,7 +74,7 @@ namespace WebApi.Controllers
         {
             var tags = await _tagRepository.List(it => productDTO.Categories.Contains(it.Id));
             var product = await _productRepository.GetById(id);
-            product.EAN = productDTO.BarCode;
+            product.SKU = productDTO.Sku;
             product.Description = productDTO.Description;
             product.RemoveAllCategories();
             tags.ForEach(product.AddCategory);
@@ -87,21 +84,24 @@ namespace WebApi.Controllers
             return Ok();
         }
 
-        [HttpGet("lots")]
-        public async Task<IActionResult> LotsGet()
+        [HttpGet("{id:guid}/lots")]
+        public async Task<IActionResult> LotsGet(Guid id)
         {
-            var suppliers = await _batchRepository.List();
+            var suppliers = await _batchRepository.List(it => it.ProductId == id);
             return Ok(suppliers.Adapt<IList<LotResponse>>());
         }
 
-        [HttpPost("lots")]
-        public async Task<IActionResult> LotsPost([FromBody] LotRequest batch)
+        [HttpPost("{id:guid}/lots")]
+        public async Task<IActionResult> LotsPost(Guid id, [FromBody] LotRequest batch)
         {
-            var suppliers = await _supplierRepository.List(it => batch.SuppliersId.Contains(it.Id));
-            var lot = new Lot(batch.ProductId, batch.CostValue, batch.SaleValue, batch.Quantity, batch.Number, "123123", suppliers);
-            await _batchRepository.Add(lot);
-            await _unitOfWork.Commit();
-            return Ok();
+            var command = new LotCreateCommand(batch.ProductId, batch.CostValue, batch.SaleValue, batch.Quantity, batch.Number, batch.SuppliersId);
+            var result = await _mediator.Send(command);
+            return result.ToActionResult();
+            // var suppliers = await _supplierRepository.List(it => batch.SuppliersId.Contains(it.Id));
+            // var lot = new Lot(batch.ProductId, batch.CostValue, batch.SaleValue, batch.Quantity, batch.Number, "123123", suppliers);
+            // await _batchRepository.Add(lot);
+            // await _unitOfWork.Commit();
+            // return Ok();
         }
 
         [HttpPost("suppliers")]
@@ -169,7 +169,7 @@ namespace WebApi.Controllers
     public record ProductDTO
     {
         public Guid? Id { get; init; }
-        public string BarCode { get; init; }
+        public string Sku { get; init; }
         public string Description { get; init; }
         public IList<Guid> Categories { get; init; }
     }
@@ -178,7 +178,7 @@ namespace WebApi.Controllers
     {
         public ProductDTOValidation()
         {
-            RuleFor(it => it.BarCode).NotEmpty().MinimumLength(5);
+            RuleFor(it => it.Sku).NotEmpty().MinimumLength(5);
             RuleFor(it => it.Description).NotEmpty().MinimumLength(5);
             RuleFor(it => it.Categories).NotEmpty();
         }
@@ -189,6 +189,7 @@ namespace WebApi.Controllers
         public Guid ProductId { get; init; }
         public decimal CostPrice { get; init; }
         public decimal SalePrice { get; init; }
+        public decimal CurrentyQuantity { get; init; }
         public decimal Quantity { get; init; }
         public decimal? Weight { get; init; }
         public IList<SupplierResponse> Suppliers { get; init; }
@@ -221,10 +222,9 @@ namespace WebApi.Controllers
         public BatchDTOValidation()
         {
             RuleFor(it => it.ProductId).NotEqual(Guid.Empty);
-            RuleFor(it => it.CostValue).NotEqual(0);
-            RuleFor(it => it.SaleValue).NotEqual(0);
-            RuleFor(it => it.Quantity).NotEqual(0);
-            RuleFor(it => it.Date).NotEqual(DateTime.MinValue);
+            RuleFor(it => it.CostValue).GreaterThan(0);
+            RuleFor(it => it.SaleValue).GreaterThan(it => it.CostValue);
+            RuleFor(it => it.Quantity).GreaterThan(0);
             RuleFor(it => it.Number).NotEmpty();
             RuleFor(it => it.SuppliersId).NotEmpty();
         }

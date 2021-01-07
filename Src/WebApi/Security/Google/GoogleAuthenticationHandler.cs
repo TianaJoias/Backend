@@ -40,7 +40,7 @@ namespace WebApi.Security.Google
             if (!authorizationHeader.StartsWith(GoogleAuthenticationDefaults.AuthenticationScheme, StringComparison.OrdinalIgnoreCase))
                 return AuthenticateResult.Fail("Unauthorized");
 
-            string token = authorizationHeader.Substring(GoogleAuthenticationDefaults.AuthenticationScheme.Length).Trim();
+            string token = authorizationHeader[GoogleAuthenticationDefaults.AuthenticationScheme.Length..].Trim();
             if (string.IsNullOrEmpty(token))
                 return AuthenticateResult.Fail("Unauthorized");
 

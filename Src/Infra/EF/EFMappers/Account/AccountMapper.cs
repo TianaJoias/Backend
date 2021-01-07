@@ -18,7 +18,9 @@ namespace Infra.EF.EFMappers.Account
 
             base.Configure(builder);
             builder.ToTable("Accounts");
+            builder.Property(x => x.Name);
             builder.OwnsOne(x => x.User);
+            builder.OwnsOne(x => x.Address);
             builder.Property(x => x.Roles).HasConversion(converter);
             builder.HasMany(it => it.ExternalProviders).WithOne();
         }

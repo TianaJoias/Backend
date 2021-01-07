@@ -23,6 +23,9 @@ namespace Infra.EF.Migrations.SqlLite
                         .HasColumnType("TEXT")
                         .HasColumnName("Id");
 
+                    b.Property<string>("Name")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Roles")
                         .HasColumnType("TEXT");
 
@@ -163,9 +166,6 @@ namespace Infra.EF.Migrations.SqlLite
                     b.Property<string>("Description")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("EAN")
-                        .HasColumnType("TEXT");
-
                     b.Property<string>("SKU")
                         .HasColumnType("TEXT");
 
@@ -204,6 +204,24 @@ namespace Infra.EF.Migrations.SqlLite
                     b.ToTable("Tags");
                 });
 
+            modelBuilder.Entity("Domain.Stock.EAN", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("Id");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<ulong>("LastCode")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("EAN");
+                });
+
             modelBuilder.Entity("Domain.Stock.Lot", b =>
                 {
                     b.Property<Guid>("Id")
@@ -214,7 +232,10 @@ namespace Infra.EF.Migrations.SqlLite
                     b.Property<decimal>("CostPrice")
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTime>("Date")
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("CurrentyQuantity")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("EAN")
@@ -238,6 +259,24 @@ namespace Infra.EF.Migrations.SqlLite
                     b.HasKey("Id");
 
                     b.ToTable("Lots");
+                });
+
+            modelBuilder.Entity("Domain.Stock.ProductStock", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("Id");
+
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("Quantity")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ProductStock");
                 });
 
             modelBuilder.Entity("Domain.Stock.Supplier", b =>
@@ -275,6 +314,34 @@ namespace Infra.EF.Migrations.SqlLite
 
             modelBuilder.Entity("Domain.Account.Account", b =>
                 {
+                    b.OwnsOne("Domain.Account.Address", "Address", b1 =>
+                        {
+                            b1.Property<Guid>("AccountId")
+                                .HasColumnType("TEXT");
+
+                            b1.Property<string>("CEP")
+                                .HasColumnType("TEXT");
+
+                            b1.Property<string>("City")
+                                .HasColumnType("TEXT");
+
+                            b1.Property<string>("Line1")
+                                .HasColumnType("TEXT");
+
+                            b1.Property<string>("Line2")
+                                .HasColumnType("TEXT");
+
+                            b1.Property<string>("State")
+                                .HasColumnType("TEXT");
+
+                            b1.HasKey("AccountId");
+
+                            b1.ToTable("Accounts");
+
+                            b1.WithOwner()
+                                .HasForeignKey("AccountId");
+                        });
+
                     b.OwnsOne("Domain.Account.User", "User", b1 =>
                         {
                             b1.Property<Guid>("AccountId")
@@ -293,6 +360,8 @@ namespace Infra.EF.Migrations.SqlLite
                             b1.WithOwner()
                                 .HasForeignKey("AccountId");
                         });
+
+                    b.Navigation("Address");
 
                     b.Navigation("User");
                 });

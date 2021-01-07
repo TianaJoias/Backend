@@ -189,7 +189,7 @@ namespace WebApi.Queries
     {
         public ProductWhereClauseType()
         {
-            FieldString(it => it.EAN);
+            FieldString(it => it.SKU);
             FieldString(it => it.Description);
             FieldString(it => it.Id);
             //  FieldArray(it=> it.Categories);

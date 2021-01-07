@@ -1,13 +1,21 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Domain.Portifolio
 {
     public class Product : BaseEntity
     {
-        public string EAN { get; set; }
+        protected Product() { }
+        public Product(string sku, string description)
+        {
+            SKU = sku;
+            Description = description;
+            AddEvent(new NewProductEvent(this));
+        }
+
         public string Description { get; set; }
         public IList<ProductCategory> Categories { get; set; } = new List<ProductCategory>();
-        public string SKU { get; private set; }
+        public string SKU { get; set; }
 
         public void AddCategory(Tag tag)
         {
@@ -18,5 +26,17 @@ namespace Domain.Portifolio
         {
             Categories.Clear();
         }
+    }
+
+    public class NewProductEvent : BaseEvent
+    {
+        public NewProductEvent(Product product)
+        {
+            SKU = product.SKU;
+            ProductId = product.Id;
+        }
+
+        public string SKU { get; }
+        public Guid ProductId { get; }
     }
 }

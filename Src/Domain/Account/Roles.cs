@@ -3,6 +3,7 @@
     public enum Roles
     {
         ADMIN,
-        USER
+        USER,
+        AGENT
     }
 }

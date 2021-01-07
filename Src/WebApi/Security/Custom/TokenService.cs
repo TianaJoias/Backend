@@ -27,6 +27,7 @@ namespace WebApi.Security.Custom
         public IPrincipal GetPrincipal(string token)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
+            string x = token.Replace("Bearer ", "", true, null);
             var validationParameters = new TokenValidationParameters()
             {
                 ValidateAudience = false,
@@ -43,7 +44,7 @@ namespace WebApi.Security.Custom
             };
             try
             {
-                return tokenHandler.ValidateToken(token, validationParameters, out _);
+                return tokenHandler.ValidateToken(x, validationParameters, out _);
             }
             catch (Exception)
             {
@@ -71,7 +72,7 @@ namespace WebApi.Security.Custom
         public bool ValidateRefreshToken(string token, string refreshToken)
         {
             var principal = GetPrincipal(token) as ClaimsPrincipal;
-            var refreshTokenClaim = principal.FindFirst("RefreshToken");
+            var refreshTokenClaim = principal.FindFirst(TokenBuilder.RefreshTokenClaim);
             return refreshTokenClaim?.Value == refreshToken;
         }
     }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,7 +23,7 @@ namespace WebApi.Aplication
 
         public async Task<Result<QueryPagedResult<ProductQueryResult>>> Handle(ProductQuery request, CancellationToken cancellationToken)
         {
-            Expression<Func<Product, bool>> query = it => it.Description.Contains(request.SearchTerm);
+            Expression<Func<Product, bool>> query = it => it.Description.Contains(request.SearchTerm) || it.SKU.Contains(request.SearchTerm) || it.Categories.Any(x => x.Tag.Name.Contains(request.SearchTerm));
             if (string.IsNullOrWhiteSpace(request.SearchTerm))
                 query = it => true;
             var result = await _productRepository.GetPaged(query, request.Page, request.PageSize,
@@ -48,7 +49,7 @@ namespace WebApi.Aplication
     public record ProductQueryResult
     {
         public Guid? Id { get; init; }
-        public string BarCode { get; init; }
+        public string SKU { get; init; }
         public string Description { get; init; }
         public IList<Guid> Categories { get; init; }
     }
