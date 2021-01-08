@@ -30,14 +30,19 @@ namespace Domain.Catalog
         {
             if (ClosedAt.HasValue) return;
             _items.Add(new CatalogItem(produt, lot, quantity));
+            AddEvent(new ProductReservedEvent(quantity, lot.Id, produt.Id, lot.SalePrice, Agent.Id));
         }
 
-        public void Remaining(Guid LotId, decimal quantity)
+        public void Return(Guid LotId, decimal quantity)
         {
             if (ClosedAt.HasValue) return;
-            var item = _items.Find(it => it.LotId == LotId);    
-            item.Remaining(quantity);
+            var item = _items.Find(it => it.LotId == LotId);
+            var quantitySold = item.CurrentQuantity - quantity;
+            item.Sell(quantitySold);
+            item.Return(quantity);
             TotalSold += item.TotalSold;
+            AddEvent(new ProductReturnedEvent(quantity, LotId, item.ProdutoId, item.Price, Agent.Id));
+            AddEvent(new ProductConfirmedSaleEvent(quantitySold, LotId, item.ProdutoId, item.Price, Agent.Id));
         }
 
         public void Close()

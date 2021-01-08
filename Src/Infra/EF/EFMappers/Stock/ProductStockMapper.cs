@@ -12,6 +12,7 @@ namespace Infra.EF.EFMappers.Stock
             builder.ToTable("ProductStock");
             builder.Property(x => x.ProductId);
             builder.Property(x => x.Quantity);
+            builder.Property(x => x.ReservedQuantity);
         }
     }
 }

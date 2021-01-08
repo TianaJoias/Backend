@@ -19,7 +19,7 @@ namespace WebApi.Aplication.Catalog
         private readonly ILotRepository _lotRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICatalogRepository _catalogRepository;
-        private readonly IAgentRepository _channelRepository;
+        private readonly IAgentRepository _agentRepository;
 
         public CatalogOpenHandler(IProductRepository product, ILotRepository lotRepository, IUnitOfWork unitOfWork, ICatalogRepository catalogRepository, IAgentRepository channelRepository)
         {
@@ -27,16 +27,16 @@ namespace WebApi.Aplication.Catalog
             _lotRepository = lotRepository;
             _unitOfWork = unitOfWork;
             _catalogRepository = catalogRepository;
-            _channelRepository = channelRepository;
+            _agentRepository = channelRepository;
         }
 
         public async Task<Result> Handle(CatalogOpenCommand request, CancellationToken cancellationToken)
         {
-            var (channel, products, lots) = await GetData(request);
-            var catalog = new Domain.Catalog.Catalog(channel);
+            var (agent, products, lots) = await GetData(request);
+            var catalog = new Domain.Catalog.Catalog(agent);
             var errors = new List<Result>();
-            if (channel is null)
-                errors.Add(Result.Fail("CHANNEL_REQUIRED"));
+            if (agent is null)
+                errors.Add(Result.Fail("AGENT_REQUIRED"));
             if (errors.Any())
                 return Result.Merge(errors.ToArray());
             foreach (var item in request.Items)
@@ -45,22 +45,22 @@ namespace WebApi.Aplication.Catalog
                 var produt = products.First(it => it.Id == lot.ProductId);
                 catalog.Add(produt, lot, item.Quantity);
             }
-            channel.SetCurrentCatalog(catalog);
+            agent.SetCurrentCatalog(catalog);
             await _catalogRepository.Add(catalog);
-            await _channelRepository.Update(channel);
+            await _agentRepository.Update(agent);
             await _unitOfWork.Commit();
             return Result.Ok();
         }
-        private async Task<(Agent channel, IList<Product> products, IList<Lot> lots)> GetData(CatalogOpenCommand request)
+        private async Task<(Agent agent, IList<Product> products, IList<Lot> lots)> GetData(CatalogOpenCommand request)
         {
             var lotsIds = request.Items.Select(it => it.LotId).ToList();
             var lotsTask = _lotRepository.List(it => lotsIds.Contains(it.Id));
-            var channelTask = _channelRepository.GetByQuery(it => it.Id == request.OwnerId && it.AccountableId == request.AccountableId);
-            await Task.WhenAll(lotsTask, channelTask);
+            var agentTask = _agentRepository.GetByQuery(it => it.Id == request.OwnerId && it.AccountableId == request.AccountableId);
+            await Task.WhenAll(lotsTask, agentTask);
             var lots = await lotsTask;
             var productsIds = lots.Select(it => it.ProductId).ToList();
             var productsTask = _product.List(it => productsIds.Contains(it.Id));
-            return (channel: await channelTask, products: await productsTask, lots);
+            return (agent: await agentTask, products: await productsTask, lots);
         }
     }
 

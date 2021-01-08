@@ -82,6 +82,23 @@ namespace WebApi.Controllers
             var result = await _mediator.Send(command);
             return result.ToActionResult();
         }
+
+        [HttpGet("{id:guid}/catalogs")]
+        public async Task<IActionResult> Catalogs(Guid id)
+        {
+            var command = new CatalogsByAgentQuery(id);
+            var result = await _mediator.Send(command);
+            return result.ToActionResult();
+        }
+
+
+        [HttpGet("{agentId:guid}/catalogs/{catalogId:guid}")]
+        public async Task<IActionResult> CatalogGet(Guid agentId, Guid catalogId)
+        {
+            var command = new CatalogQuery(catalogId, agentId);
+            var result = await _mediator.Send(command);
+            return result.ToActionResult();
+        }
     }
 
     public record CatalogOpenRequest

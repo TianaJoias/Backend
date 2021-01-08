@@ -26,7 +26,7 @@ namespace WebApi.Aplication.Catalog
             if(catalog is null)
                 return Result.Fail("CATALOG_NOT_FOUND");
             foreach (var item in request.Items)
-                catalog.Remaining(item.LotId, item.Quantity);
+                catalog.Return(item.LotId, item.Quantity);
             catalog.Close();
             await _catalogRepository.Update(catalog);
             await _unitOfWork.Commit();

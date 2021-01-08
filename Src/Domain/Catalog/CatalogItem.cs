@@ -35,24 +35,62 @@ namespace Domain.Catalog
         public IList<string> Thumbnail { get; private set; }
         public bool Enabled { get; private set; }
 
-        public void Remaining(decimal quantity)
+        public void Return(decimal quantity)
         {
             CurrentQuantity -= quantity;
-            TotalSold = (InitialQuantity - CurrentQuantity) * Price;
-            AddEvent(new ProductSoldEvent(quantity, LotId, ProdutoId, Price));
+        }
+
+        public void Sell(decimal quantity)
+        {
+            CurrentQuantity -= quantity;
+            TotalSold = quantity * Price;
         }
     }
-
-    public class ProductSoldEvent : BaseEvent
+    public class ProductReservedEvent : BaseEvent
     {
-        public ProductSoldEvent(decimal quantity, Guid lotId, Guid produtoId, decimal price)
+        public ProductReservedEvent(decimal quantity, Guid lotId, Guid produtoId, decimal price, Guid agentId)
         {
             Quantity = quantity;
             LotId = lotId;
             ProdutoId = produtoId;
             Price = price;
+            AgentId = agentId;
         }
 
+        public decimal Quantity { get; }
+        public Guid LotId { get; }
+        public Guid ProdutoId { get; }
+        public decimal Price { get; }
+        public Guid AgentId { get; }
+    }
+    public class ProductReturnedEvent : BaseEvent
+    {
+        public ProductReturnedEvent(decimal quantity, Guid lotId, Guid produtoId, decimal price, Guid agentId)
+        {
+            Quantity = quantity;
+            LotId = lotId;
+            ProdutoId = produtoId;
+            Price = price;
+            AgentId = agentId;
+        }
+
+        public decimal Quantity { get; }
+        public Guid LotId { get; }
+        public Guid ProdutoId { get; }
+        public decimal Price { get; }
+        public Guid AgentId { get; }
+    }
+    public class ProductConfirmedSaleEvent : BaseEvent
+    {
+        public ProductConfirmedSaleEvent(decimal quantity, Guid lotId, Guid produtoId, decimal price, Guid agentId)
+        {
+            Quantity = quantity;
+            LotId = lotId;
+            ProdutoId = produtoId;
+            Price = price;
+            AgentId = agentId;
+        }
+        public Guid AgentId { get; }
         public decimal Quantity { get; }
         public Guid LotId { get; }
         public Guid ProdutoId { get; }

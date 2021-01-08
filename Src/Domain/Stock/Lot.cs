@@ -12,6 +12,7 @@ namespace Domain.Stock
         public decimal SalePrice { get; private set; }
         public decimal Quantity { get; private set; }
         public decimal CurrentyQuantity { get; private set; }
+        public decimal ReservedQuantity { get; private set; }
         public decimal? Weight { get; private set; }
         public virtual IList<Supplier> Suppliers { get; private set; } = new List<Supplier>();
         public DateTime CreatedAt { get; private set; }
@@ -34,9 +35,21 @@ namespace Domain.Stock
             Suppliers = supplier;
             AddEvent(new NewLotEvent(this));
         }
-        public void Withdraw(decimal quantity)
+        public void Reserve(decimal quantity)
         {
             CurrentyQuantity -= quantity;
+            ReservedQuantity += quantity;
+        }
+
+        public void ConfirmSale(decimal quantity)
+        {
+            ReservedQuantity -= quantity;
+        }
+
+        public void Return(decimal quantity)
+        {
+            CurrentyQuantity += quantity;
+            ReservedQuantity -= quantity;
         }
     }
 
