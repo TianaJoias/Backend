@@ -250,6 +250,9 @@ namespace Infra.EF.Migrations.SqlLite
                     b.Property<decimal>("Quantity")
                         .HasColumnType("TEXT");
 
+                    b.Property<decimal>("ReservedQuantity")
+                        .HasColumnType("TEXT");
+
                     b.Property<decimal>("SalePrice")
                         .HasColumnType("TEXT");
 
@@ -272,6 +275,12 @@ namespace Infra.EF.Migrations.SqlLite
                         .HasColumnType("TEXT");
 
                     b.Property<decimal>("Quantity")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("ReservedQuantity")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("TotalWithdrawal")
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");

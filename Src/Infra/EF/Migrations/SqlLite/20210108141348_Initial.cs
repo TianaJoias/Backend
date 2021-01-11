@@ -50,6 +50,7 @@ namespace Infra.EF.Migrations.SqlLite
                     SalePrice = table.Column<decimal>(type: "TEXT", nullable: false),
                     Quantity = table.Column<decimal>(type: "TEXT", nullable: false),
                     CurrentyQuantity = table.Column<decimal>(type: "TEXT", nullable: false),
+                    ReservedQuantity = table.Column<decimal>(type: "TEXT", nullable: false),
                     Weight = table.Column<decimal>(type: "TEXT", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
                     Number = table.Column<string>(type: "TEXT", nullable: true),
@@ -79,7 +80,9 @@ namespace Infra.EF.Migrations.SqlLite
                 {
                     Id = table.Column<Guid>(type: "TEXT", nullable: false),
                     ProductId = table.Column<Guid>(type: "TEXT", nullable: false),
-                    Quantity = table.Column<decimal>(type: "TEXT", nullable: false)
+                    Quantity = table.Column<decimal>(type: "TEXT", nullable: false),
+                    ReservedQuantity = table.Column<decimal>(type: "TEXT", nullable: false),
+                    TotalWithdrawal = table.Column<decimal>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {

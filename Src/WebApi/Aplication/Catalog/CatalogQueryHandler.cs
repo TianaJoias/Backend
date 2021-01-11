@@ -37,6 +37,8 @@ namespace WebApi.Aplication.Catalog
         public DateTime CreatedAt { get; set; }
         public DateTime? ClosedAt { get; set; }
         public decimal TotalSold { get; set; }
+        public int ItemsQuantity { get; set; }
+        public decimal TotalValue { get; set; }
     }
     public class CatalogQueryResult : CatalogsByAgentQueryResult
     {

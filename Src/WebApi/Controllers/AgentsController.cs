@@ -40,10 +40,10 @@ namespace WebApi.Controllers
         }
 
         [HttpPost("{id:guid}/catalogs")]
-        public async Task<IActionResult> Catalog(Guid id, [FromBody] CatalogOpenRequest request)
+        public async Task<IActionResult> Catalog(Guid id, [FromBody] CatalogAddPackageRequest request)
         {
             var items = request.Items.Adapt<IList<CatalogOpenItemCommand>>();
-            var command = new CatalogOpenCommand(id, User.GetId(), items);
+            var command = new CatalogAddPackageCommand(id, User.GetId(), items, request.Done);
             var result = await _mediator.Send(command);
             return result.ToActionResult();
         }
@@ -51,7 +51,7 @@ namespace WebApi.Controllers
         [HttpPut("{id:guid}/catalogs/{catalogId:guid}")]
         public async Task<IActionResult> CatalogPut(Guid id, Guid catalogId, [FromBody] IList<ItemCatalogCloseRequest> items)
         {
-            var command = new CatalogCloseCommand
+            var command = new CatalogClosePackageCommand
             {
                 OwnerId = id,
                 CatalogId = catalogId,
@@ -101,11 +101,10 @@ namespace WebApi.Controllers
         }
     }
 
-    public record CatalogOpenRequest
+    public record CatalogAddPackageRequest
     {
-        public Guid ResponsableId { get; set; }
-        public Guid AgentId { get; set; }
         public IList<CatalogOpenItemRequest> Items { get; init; }
+        public bool Done { get; set; }
     }
 
     public record CatalogOpenItemRequest

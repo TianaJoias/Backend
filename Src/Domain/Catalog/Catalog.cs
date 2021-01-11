@@ -5,37 +5,61 @@ using Domain.Stock;
 
 namespace Domain.Catalog
 {
+    public class CatalogState
+    {
+        public enum States { Preparation, Ready, Sended, Delivered, Returned, Closing, Closed }
+        public CatalogState(States state, int order)
+        {
+            State = state;
+            Order = order;
+            ChangedAt = Clock.Now;
+        }
+        public States State { get; set; }
+        public DateTime ChangedAt { get; set; }
+        public int Order { get; set; }
+    }
+
     public class Catalog : BaseEntity
     {
         private readonly List<CatalogItem> _items;
+        private readonly List<CatalogState> _changes;
+        public CatalogState State { get; set; }
 
         protected Catalog()
         {
             _items = new List<CatalogItem>();
+            _changes = new List<CatalogState>();
         }
 
         public Catalog(Agent channel) : this()
         {
             Agent = channel;
             CreatedAt = Clock.Now;
-            AddEvent(new CatalogOpenedEvent(this));
+            ChangeState(CatalogState.States.Preparation);
+        }
+
+        private void ChangeState(CatalogState.States state)
+        {
+            var oldState = State;
+            State = new CatalogState(state, _changes.Count);
+            _changes.Add(State);
+            AddEvent(new CatalogStateChangedEvent(this, oldState));
         }
 
         public Agent Agent { get; private set; }
         public IReadOnlyCollection<CatalogItem> Items => _items.AsReadOnly();
         public DateTime CreatedAt { get; private set; }
-        public DateTime? ClosedAt { get; private set; }
         public decimal TotalSold { get; set; }
-        public void Add(Product produt, Lot lot, decimal quantity)
+        public void AddItem(Product produt, Lot lot, decimal quantity)
         {
-            if (ClosedAt.HasValue) return;
+            if (State.State == CatalogState.States.Closed) return;
             _items.Add(new CatalogItem(produt, lot, quantity));
             AddEvent(new ProductReservedEvent(quantity, lot.Id, produt.Id, lot.SalePrice, Agent.Id));
         }
 
-        public void Return(Guid LotId, decimal quantity)
+        public void ReturnItem(Guid LotId, decimal quantity)
         {
-            if (ClosedAt.HasValue) return;
+            if (State.State == CatalogState.States.Closed) return;
             var item = _items.Find(it => it.LotId == LotId);
             var quantitySold = item.CurrentQuantity - quantity;
             item.Sell(quantitySold);
@@ -45,37 +69,52 @@ namespace Domain.Catalog
             AddEvent(new ProductConfirmedSaleEvent(quantitySold, LotId, item.ProdutoId, item.Price, Agent.Id));
         }
 
-        public void Close()
+        public void CompleteClosing()
         {
-            ClosedAt = Clock.Now;
-            AddEvent(new CatalogClosedEvent(this));
+            ChangeState(CatalogState.States.Closed);
+        }
+
+        public void CompletePreparing()
+        {
+            ChangeState(CatalogState.States.Ready);
+        }
+
+        public void Send()
+        {
+            ChangeState(CatalogState.States.Sended);
+        }
+
+        public void Delivery()
+        {
+            ChangeState(CatalogState.States.Delivered);
+        }
+
+        public void Return()
+        {
+            ChangeState(CatalogState.States.Returned);
+        }
+
+        public void StartClosing()
+        {
+            if (State.State != CatalogState.States.Closing)
+                ChangeState(CatalogState.States.Closing);
         }
     }
 
-    public class CatalogOpenedEvent : BaseEvent
+    public class CatalogStateChangedEvent : BaseEvent
     {
-        public CatalogOpenedEvent(Catalog catalog)
+        public CatalogStateChangedEvent(Catalog catalog, CatalogState previousState)
         {
-            CreatedAt = catalog.CreatedAt;
-            AgentId = catalog.Agent.Id;
-        }
-
-        public DateTime CreatedAt { get; }
-        public Guid AgentId { get; }
-    }
-
-    public class CatalogClosedEvent : BaseEvent
-    {
-        public CatalogClosedEvent(Catalog catalog)
-        {
-            ClosedAt = catalog.ClosedAt.Value;
-            OpenedAt = catalog.CreatedAt;
+            ChangedAt = catalog.State.ChangedAt;
+            CurrentState = catalog.State.State;
+            PreviousState = previousState.State;
             TotalSold = catalog.TotalSold;
             AgentId = catalog.Agent.Id;
         }
 
-        public DateTime ClosedAt { get; }
-        public DateTime OpenedAt { get; }
+        public DateTime ChangedAt { get; }
+        public CatalogState.States PreviousState { get; }
+        public CatalogState.States CurrentState { get; }
         public decimal TotalSold { get; }
         public Guid AgentId { get; }
     }

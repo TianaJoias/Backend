@@ -10,35 +10,38 @@ using MediatR;
 
 namespace WebApi.Aplication.Catalog
 {
-    public class CatalogCloseHandler : ICommandHandler<CatalogCloseCommand>
+    public class CatalogClosePackageCommandHandler : ICommandHandler<CatalogClosePackageCommand>
     {
         private readonly ICatalogRepository _catalogRepository;
         private readonly IUnitOfWork _unitOfWork;
 
-        public CatalogCloseHandler(ICatalogRepository catalogRepository, IUnitOfWork unitOfWork)
+        public CatalogClosePackageCommandHandler(ICatalogRepository catalogRepository, IUnitOfWork unitOfWork)
         {
             _catalogRepository = catalogRepository;
             _unitOfWork = unitOfWork;
         }
-        public async Task<Result> Handle(CatalogCloseCommand request, CancellationToken cancellationToken)
+        public async Task<Result> Handle(CatalogClosePackageCommand request, CancellationToken cancellationToken)
         {
-            var catalog = await _catalogRepository.GetByQuery(it=> it.Agent.Id == request.OwnerId && it.Id == request.CatalogId);
-            if(catalog is null)
+            var catalog = await _catalogRepository.GetByQuery(it => it.Agent.Id == request.OwnerId && it.Id == request.CatalogId);
+            if (catalog is null)
                 return Result.Fail("CATALOG_NOT_FOUND");
+            catalog.StartClosing();
             foreach (var item in request.Items)
-                catalog.Return(item.LotId, item.Quantity);
-            catalog.Close();
+                catalog.ReturnItem(item.LotId, item.Quantity);
+            if (request.CompletedClosing)
+                catalog.CompleteClosing();
             await _catalogRepository.Update(catalog);
             await _unitOfWork.Commit();
             return Result.Ok();
         }
     }
 
-    public record CatalogCloseCommand : ICommand
+    public record CatalogClosePackageCommand : ICommand
     {
         public Guid CatalogId { get; init; }
         public Guid OwnerId { get; init; }
         public IList<CatalogCloseItemCommand> Items { get; init; }
+        public bool CompletedClosing { get; set; }
     }
 
     public record CatalogCloseItemCommand

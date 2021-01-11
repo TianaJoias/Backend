@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Domain;
 using Domain.Portifolio;
+using Domain.Stock;
 using FluentResults;
 using Mapster;
 
@@ -15,10 +16,12 @@ namespace WebApi.Aplication
         IQueryHandler<ProductQueryById, ProductQueryResult>
     {
         private readonly IProductRepository _productRepository;
+        private readonly IProductStockRepository _productStock;
 
-        public ProductsQueryHandler(IProductRepository productRepository)
+        public ProductsQueryHandler(IProductRepository productRepository, IProductStockRepository productStock)
         {
             _productRepository = productRepository;
+            _productStock = productStock;
         }
 
         public async Task<Result<QueryPagedResult<ProductQueryResult>>> Handle(ProductQuery request, CancellationToken cancellationToken)
@@ -29,7 +32,30 @@ namespace WebApi.Aplication
             var result = await _productRepository.GetPaged(query, request.Page, request.PageSize,
                 request.OrderBy);
 
-            var dto = new QueryPagedResult<ProductQueryResult>(result.CurrentPage, result.PageCount, result.PageSize, result.RowCount, Records: result.Records.Adapt<IList<ProductQueryResult>>());
+            var ids = result.Records.Select(it => it.Id);
+            var stocks = await _productStock.List(it => ids.Contains(it.ProductId));
+            var records = result.Records.Join(stocks, it => it.Id, it => it.ProductId, (p, s) => new
+            {
+                p.Id,
+                p.SKU,
+                p.Description,
+                Categories = p.Categories.Select(it => it.TagId),
+                s.Quantity,
+                s.ReservedQuantity
+            }).ToList();
+            var rest = result.Records.Where(it => !records.Any(r => r.Id == it.Id)).Select(p => new
+            {
+                p.Id,
+                p.SKU,
+                p.Description,
+                Categories = p.Categories.Select(it => it.TagId),
+                Quantity = (decimal)0,
+                ReservedQuantity = (decimal)0
+            }).ToList();
+            records.AddRange(rest);
+            var records22 = records.Adapt<IList<ProductQueryResult>>();
+
+            var dto = new QueryPagedResult<ProductQueryResult>(result.CurrentPage, result.PageCount, result.PageSize, result.RowCount, Records: records22);
             return Result.Ok(dto);
         }
 
@@ -52,5 +78,7 @@ namespace WebApi.Aplication
         public string SKU { get; init; }
         public string Description { get; init; }
         public IList<Guid> Categories { get; init; }
+        public decimal ReservedQuantity { get; set; }
+        public decimal Quantity { get; set; }
     }
 }

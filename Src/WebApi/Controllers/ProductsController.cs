@@ -24,7 +24,7 @@ namespace WebApi.Controllers
     {
         private readonly IProductRepository _productRepository;
         private readonly IUnitOfWork _unitOfWork;
-        private readonly ILotRepository _batchRepository;
+        private readonly ILotRepository _lotsRepository;
         private readonly IMediator _mediator;
         private readonly ISupplierRepository _supplierRepository;
         private readonly ITagRepository _tagRepository;
@@ -34,7 +34,7 @@ namespace WebApi.Controllers
         {
             _productRepository = productRepository;
             _unitOfWork = unitOfWork;
-            _batchRepository = batchRepository;
+            _lotsRepository = batchRepository;
             _mediator = mediator;
             _supplierRepository = supplierRepository;
             _tagRepository = tagRepository;
@@ -87,8 +87,8 @@ namespace WebApi.Controllers
         [HttpGet("{id:guid}/lots")]
         public async Task<IActionResult> LotsGet(Guid id)
         {
-            var suppliers = await _batchRepository.List(it => it.ProductId == id);
-            return Ok(suppliers.Adapt<IList<LotResponse>>());
+            var lots = await _lotsRepository.List(it => it.ProductId == id);
+            return Ok(lots.Adapt<IList<LotResponse>>());
         }
 
         [HttpPost("{id:guid}/lots")]
@@ -97,11 +97,6 @@ namespace WebApi.Controllers
             var command = new LotCreateCommand(batch.ProductId, batch.CostValue, batch.SaleValue, batch.Quantity, batch.Number, batch.SuppliersId);
             var result = await _mediator.Send(command);
             return result.ToActionResult();
-            // var suppliers = await _supplierRepository.List(it => batch.SuppliersId.Contains(it.Id));
-            // var lot = new Lot(batch.ProductId, batch.CostValue, batch.SaleValue, batch.Quantity, batch.Number, "123123", suppliers);
-            // await _batchRepository.Add(lot);
-            // await _unitOfWork.Commit();
-            // return Ok();
         }
 
         [HttpPost("suppliers")]
@@ -191,9 +186,10 @@ namespace WebApi.Controllers
         public decimal SalePrice { get; init; }
         public decimal CurrentyQuantity { get; init; }
         public decimal Quantity { get; init; }
+        public decimal ReservedQuantity { get; init; }
         public decimal? Weight { get; init; }
         public IList<SupplierResponse> Suppliers { get; init; }
-        public DateTime Date { get; init; }
+        public DateTime CreatedAt { get; init; }
         public string Number { get; init; }
         public string EAN { get; init; }
     }

@@ -13,7 +13,7 @@ using MediatR;
 
 namespace WebApi.Aplication.Catalog
 {
-    public class CatalogOpenHandler : ICommandHandler<CatalogOpenCommand>
+    public class CatalogAddPackageCommandHandler : ICommandHandler<CatalogAddPackageCommand>
     {
         private readonly IProductRepository _product;
         private readonly ILotRepository _lotRepository;
@@ -21,7 +21,7 @@ namespace WebApi.Aplication.Catalog
         private readonly ICatalogRepository _catalogRepository;
         private readonly IAgentRepository _agentRepository;
 
-        public CatalogOpenHandler(IProductRepository product, ILotRepository lotRepository, IUnitOfWork unitOfWork, ICatalogRepository catalogRepository, IAgentRepository channelRepository)
+        public CatalogAddPackageCommandHandler(IProductRepository product, ILotRepository lotRepository, IUnitOfWork unitOfWork, ICatalogRepository catalogRepository, IAgentRepository channelRepository)
         {
             _product = product;
             _lotRepository = lotRepository;
@@ -30,10 +30,10 @@ namespace WebApi.Aplication.Catalog
             _agentRepository = channelRepository;
         }
 
-        public async Task<Result> Handle(CatalogOpenCommand request, CancellationToken cancellationToken)
+        public async Task<Result> Handle(CatalogAddPackageCommand request, CancellationToken cancellationToken)
         {
-            var (agent, products, lots) = await GetData(request);
-            var catalog = new Domain.Catalog.Catalog(agent);
+            var (agent, products, lots, catalog) = await GetData(request);
+            catalog ??= new Domain.Catalog.Catalog(agent);
             var errors = new List<Result>();
             if (agent is null)
                 errors.Add(Result.Fail("AGENT_REQUIRED"));
@@ -43,28 +43,30 @@ namespace WebApi.Aplication.Catalog
             {
                 var lot = lots.First(it => it.Id == item.LotId);
                 var produt = products.First(it => it.Id == lot.ProductId);
-                catalog.Add(produt, lot, item.Quantity);
+                catalog.AddItem(produt, lot, item.Quantity);
             }
-            agent.SetCurrentCatalog(catalog);
+            if (request.CompletePreparing)
+                catalog.CompletePreparing();
             await _catalogRepository.Add(catalog);
             await _agentRepository.Update(agent);
             await _unitOfWork.Commit();
             return Result.Ok();
         }
-        private async Task<(Agent agent, IList<Product> products, IList<Lot> lots)> GetData(CatalogOpenCommand request)
+        private async Task<(Agent agent, IList<Product> products, IList<Lot> lots, Domain.Catalog.Catalog catalog)> GetData(CatalogAddPackageCommand request)
         {
             var lotsIds = request.Items.Select(it => it.LotId).ToList();
             var lotsTask = _lotRepository.List(it => lotsIds.Contains(it.Id));
-            var agentTask = _agentRepository.GetByQuery(it => it.Id == request.OwnerId && it.AccountableId == request.AccountableId);
-            await Task.WhenAll(lotsTask, agentTask);
+            var agentTask = _agentRepository.GetByQuery(it => it.Id == request.AgentId && it.AccountableId == request.AccountableId);
+            var catalogTask = _catalogRepository.GetByQuery(it => it.Agent.AccountableId == request.AccountableId && it.Agent.Id == request.AgentId && it.State.State == CatalogState.States.Preparation);
+            await Task.WhenAll(lotsTask, agentTask, catalogTask);
             var lots = await lotsTask;
             var productsIds = lots.Select(it => it.ProductId).ToList();
             var productsTask = _product.List(it => productsIds.Contains(it.Id));
-            return (agent: await agentTask, products: await productsTask, lots);
+            return (agent: await agentTask, products: await productsTask, lots, catalog: await catalogTask);
         }
     }
 
-    public record CatalogOpenCommand(Guid OwnerId, Guid AccountableId, IList<CatalogOpenItemCommand> Items) : ICommand;
+    public record CatalogAddPackageCommand(Guid AgentId, Guid AccountableId, IList<CatalogOpenItemCommand> Items, bool CompletePreparing) : ICommand;
 
     public record CatalogOpenItemCommand
     {

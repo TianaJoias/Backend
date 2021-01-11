@@ -32,13 +32,13 @@ namespace Infra.EF
             if (adminAccount is null)
             {
                 await AddAccount(context, passwordService, guid);
-                await AddProducts(context);
-                await Lot(context);
+                await AddTags(context);
+                await AddSupplier(context);
                 await context.SaveChangesAsync();
             }
         }
 
-        private static async Task Lot(TianaJoiasContextDB context)
+        private static async Task AddSupplier(TianaJoiasContextDB context)
         {
             var supplier = new Supplier
             {
@@ -47,11 +47,9 @@ namespace Infra.EF
                 Name = "Supplier One",
             };
             await context.Set<Supplier>().AddRangeAsync(supplier);
-            var lot = new Lot(Guid.Parse("{37F1AD8B-5707-4C2E-BEB6-BAF05BF18E9C}"), 10, 10, 10, "123123", new List<Supplier> { supplier });
-            await context.Set<Lot>().AddRangeAsync(lot);
         }
 
-        private static async Task AddProducts(TianaJoiasContextDB context)
+        private static async Task AddTags(TianaJoiasContextDB context)
         {
             var firstTag = new Tag
             {
@@ -61,21 +59,7 @@ namespace Infra.EF
             {
                 Name = "secondTag"
             };
-            await context.Set<Tag>().AddRangeAsync(firstTag, secondTag);
-
-            var firstProduct = new Product("PRO-FIRST-123456", "First Product")
-            {
-                Id = Guid.Parse("{37F1AD8B-5707-4C2E-BEB6-BAF05BF18E9C}")
-            };
-            var secondProduct = new Product("PRO-SECOND-123456", "second Product")
-            {
-                Id = Guid.Parse("{C6504702-A0B6-4D95-9B9B-8A417316A15D}")
-            };
-
-            firstProduct.AddCategory(firstTag);
-            secondProduct.AddCategory(secondTag);
-
-            await context.Set<Product>().AddRangeAsync(firstProduct, secondProduct);
+            await context.Set<Tag>().AddRangeAsync(firstTag, secondTag);        
         }
 
         private static async Task AddAccount(TianaJoiasContextDB context, IPasswordService passwordService, Guid guid)
