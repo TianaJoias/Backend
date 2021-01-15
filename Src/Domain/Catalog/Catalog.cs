@@ -12,7 +12,7 @@ namespace Domain.Catalog
         private readonly List<CatalogItem> _items;
         public enum States { Preparation, Ready, Sended, Delivered, Returned, Closing, Closed }
 
-        public enum Trigger { Next }
+        public enum Trigger { Next, Close }
 
         public States State { get; private set; }
         public DateTime ChangedAt { get; private set; }
@@ -52,7 +52,7 @@ namespace Domain.Catalog
                 .Permit(Trigger.Next, States.Closing);
 
             _stateMachine.Configure(States.Closing)
-                .Permit(Trigger.Next, States.Closed);
+                .Permit(Trigger.Close, States.Closed);
 
             _stateMachine.Configure(States.Closed)
                 .OnEntry(() => OnClosed());
@@ -110,10 +110,14 @@ namespace Domain.Catalog
 
         public void Next()
         {
-            if (State == States.Closed) return;
-            _stateMachine.Fire(Trigger.Next);
+            if (_stateMachine.CanFire(Trigger.Next))
+                _stateMachine.Fire(Trigger.Next);
         }
-
+        public void Close()
+        {
+            if (_stateMachine.CanFire(Trigger.Close))
+                _stateMachine.Fire(Trigger.Close);
+        }
         public void ChangeCatalog(Product product, Lot lot, decimal quantity, Catalog catalog)
         {
             if (State == States.Closed) return;

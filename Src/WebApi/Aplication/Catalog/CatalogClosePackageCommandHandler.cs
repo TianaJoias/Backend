@@ -28,7 +28,7 @@ namespace WebApi.Aplication.Catalog
             foreach (var item in request.Items)
                 catalog.ReturnItem(item.LotId, item.Quantity);
             if (request.Done)
-                catalog.Next();
+                catalog.Close();
             await _catalogRepository.Update(catalog);
             await _unitOfWork.Commit();
             return Result.Ok();

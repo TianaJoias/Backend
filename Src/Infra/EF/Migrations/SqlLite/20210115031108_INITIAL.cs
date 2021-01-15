@@ -190,6 +190,8 @@ namespace Infra.EF.Migrations.SqlLite
                     State = table.Column<int>(type: "INTEGER", nullable: false),
                     ChangedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
                     ItemsQuantity = table.Column<decimal>(type: "TEXT", nullable: false),
+                    ItemsAddedQuantity = table.Column<decimal>(type: "TEXT", nullable: false),
+                    SoldQuantity = table.Column<decimal>(type: "TEXT", nullable: false),
                     AgentId = table.Column<Guid>(type: "TEXT", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
                     SoldValue = table.Column<decimal>(type: "TEXT", nullable: false),

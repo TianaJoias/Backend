@@ -93,7 +93,13 @@ namespace Infra.EF.Migrations.SqlLite
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT");
 
+                    b.Property<decimal>("ItemsAddedQuantity")
+                        .HasColumnType("TEXT");
+
                     b.Property<decimal>("ItemsQuantity")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("SoldQuantity")
                         .HasColumnType("TEXT");
 
                     b.Property<decimal>("SoldValue")

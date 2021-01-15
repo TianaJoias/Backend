@@ -54,7 +54,7 @@ namespace WebApi.Controllers
             return result.ToActionResult();
         }
 
-        [HttpPut("{id:guid}/catalogs/{catalogId:guid}")]
+        [HttpPost("{id:guid}/catalogs/{catalogId:guid}/close")]
         public async Task<IActionResult> CatalogPut(Guid id, Guid catalogId, [FromBody] CatalogClosePackageRequest request)
         {
             var command = new CatalogClosePackageCommand
@@ -62,6 +62,19 @@ namespace WebApi.Controllers
                 OwnerId = id,
                 CatalogId = catalogId,
                 Done = request.Done,
+                Items = request.Items
+            };
+            var result = await _mediator.Send(command);
+            return result.ToActionResult();
+        }
+        
+        [HttpPost("{id:guid}/catalogs/{catalogId:guid}/transfer")]
+        public async Task<IActionResult> transfer(Guid id, Guid catalogId, [FromBody] CatalogItemTransferPackageRequest request)
+        {
+            var command = new CatalogClosePackageCommand
+            {
+                OwnerId = id,
+                CatalogId = catalogId,
                 Items = request.Items
             };
             var result = await _mediator.Send(command);
@@ -107,11 +120,19 @@ namespace WebApi.Controllers
             return result.ToActionResult();
         }
     }
+
+    public record CatalogItemTransferPackageRequest
+    {
+        public IList<CatalogClosePackageItemCommand> Items { get; init; }
+        public Guid ToCatalogId { get; set; }
+    }
+    
     public record CatalogClosePackageRequest
     {
         public IList<CatalogClosePackageItemCommand> Items { get; init; }
         public bool Done { get; set; }
     }
+
     public record CatalogAddPackageRequest
     {
         public IList<CatalogAddPackageItemCommand> Items { get; init; }

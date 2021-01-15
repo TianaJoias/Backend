@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infra.EF.Migrations.SqlLite
 {
     [DbContext(typeof(TianaJoiasContextDB))]
-    [Migration("20210114173216_INITIAL")]
+    [Migration("20210115031108_INITIAL")]
     partial class INITIAL
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -95,7 +95,13 @@ namespace Infra.EF.Migrations.SqlLite
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT");
 
+                    b.Property<decimal>("ItemsAddedQuantity")
+                        .HasColumnType("TEXT");
+
                     b.Property<decimal>("ItemsQuantity")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("SoldQuantity")
                         .HasColumnType("TEXT");
 
                     b.Property<decimal>("SoldValue")
