@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using Domain;
 using Domain.Account;
 using Microsoft.AspNetCore.Authorization;
 

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Domain;
 using Mapster;
@@ -42,29 +41,37 @@ namespace WebApi.Controllers
         [HttpPost("{id:guid}/catalogs")]
         public async Task<IActionResult> Catalog(Guid id, [FromBody] CatalogAddPackageRequest request)
         {
-            var items = request.Items.Adapt<IList<CatalogOpenItemCommand>>();
-            var command = new CatalogAddPackageCommand(id, User.GetId(), items, request.Done);
+            var command = new CatalogAddPackageCommand(id, User.GetId(), request.Items, request.Done);
+            var result = await _mediator.Send(command);
+            return result.ToActionResult();
+        }
+
+        [HttpPost("{id:guid}/catalogs/{catalogId:guid}/status")]
+        public async Task<IActionResult> NextState(Guid id, Guid catalogId, [FromBody] string comment)
+        {
+            var command = new CatalogNextStatusCommand(catalogId, User.GetId(), id, comment);
             var result = await _mediator.Send(command);
             return result.ToActionResult();
         }
 
         [HttpPut("{id:guid}/catalogs/{catalogId:guid}")]
-        public async Task<IActionResult> CatalogPut(Guid id, Guid catalogId, [FromBody] IList<ItemCatalogCloseRequest> items)
+        public async Task<IActionResult> CatalogPut(Guid id, Guid catalogId, [FromBody] CatalogClosePackageRequest request)
         {
             var command = new CatalogClosePackageCommand
             {
                 OwnerId = id,
                 CatalogId = catalogId,
-                Items = items.Adapt<IList<CatalogCloseItemCommand>>()
+                Done = request.Done,
+                Items = request.Items
             };
             var result = await _mediator.Send(command);
             return result.ToActionResult();
         }
 
         [HttpPut("me/catalogs/{catalogId:guid}")]
-        public Task<IActionResult> CatalogPut(Guid catalogId, [FromBody] IList<ItemCatalogCloseRequest> items)
+        public Task<IActionResult> CatalogPut(Guid catalogId, [FromBody] CatalogClosePackageRequest request)
         {
-            return CatalogPut(User.GetId(), catalogId, items);
+            return CatalogPut(User.GetId(), catalogId, request);
         }
 
         [HttpGet("me/catalogs/{id:guid}")]
@@ -100,23 +107,15 @@ namespace WebApi.Controllers
             return result.ToActionResult();
         }
     }
-
-    public record CatalogAddPackageRequest
+    public record CatalogClosePackageRequest
     {
-        public IList<CatalogOpenItemRequest> Items { get; init; }
+        public IList<CatalogClosePackageItemCommand> Items { get; init; }
         public bool Done { get; set; }
     }
-
-    public record CatalogOpenItemRequest
+    public record CatalogAddPackageRequest
     {
-        public Guid LotId { get; init; }
-        public decimal Quantity { get; init; }
-    }
-
-    public record ItemCatalogCloseRequest
-    {
-        public Guid LotId { get; set; }
-        public decimal Quantity { get; set; }
+        public IList<CatalogAddPackageItemCommand> Items { get; init; }
+        public bool Done { get; set; }
     }
 
     public record PaginateRequest

@@ -1,5 +1,4 @@
-﻿using Domain;
-using Domain.Stock;
+﻿using Domain.Stock;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

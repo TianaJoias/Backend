@@ -14,7 +14,7 @@ namespace Infra.EF.Migrations.SqlLite
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "5.0.0-rc.2.20475.6");
+                .HasAnnotation("ProductVersion", "5.0.2");
 
             modelBuilder.Entity("Domain.Account.Account", b =>
                 {
@@ -87,13 +87,22 @@ namespace Infra.EF.Migrations.SqlLite
                     b.Property<Guid>("AgentId")
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTime?>("ClosedAt")
+                    b.Property<DateTime>("ChangedAt")
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT");
 
-                    b.Property<decimal>("TotalSold")
+                    b.Property<decimal>("ItemsQuantity")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("SoldValue")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("State")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("ValuedAt")
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
@@ -137,6 +146,9 @@ namespace Infra.EF.Migrations.SqlLite
                     b.Property<Guid>("ProdutoId")
                         .HasColumnType("TEXT");
 
+                    b.Property<decimal>("QuantitySold")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("SKU")
                         .HasColumnType("TEXT");
 
@@ -146,7 +158,7 @@ namespace Infra.EF.Migrations.SqlLite
                     b.Property<string>("Thumbnail")
                         .HasColumnType("TEXT");
 
-                    b.Property<decimal>("TotalSold")
+                    b.Property<decimal>("ValueSold")
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
@@ -172,21 +184,6 @@ namespace Infra.EF.Migrations.SqlLite
                     b.HasKey("Id");
 
                     b.ToTable("Products");
-                });
-
-            modelBuilder.Entity("Domain.Portifolio.ProductCategory", b =>
-                {
-                    b.Property<Guid>("ProductId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<Guid>("TagId")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("ProductId", "TagId");
-
-                    b.HasIndex("TagId");
-
-                    b.ToTable("ProductCategory");
                 });
 
             modelBuilder.Entity("Domain.Portifolio.Tag", b =>
@@ -321,6 +318,21 @@ namespace Infra.EF.Migrations.SqlLite
                     b.ToTable("LotSupplier");
                 });
 
+            modelBuilder.Entity("ProductTag", b =>
+                {
+                    b.Property<Guid>("CategoriesId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("ProductsId")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("CategoriesId", "ProductsId");
+
+                    b.HasIndex("ProductsId");
+
+                    b.ToTable("Categories");
+                });
+
             modelBuilder.Entity("Domain.Account.Account", b =>
                 {
                     b.OwnsOne("Domain.Account.Address", "Address", b1 =>
@@ -410,25 +422,6 @@ namespace Infra.EF.Migrations.SqlLite
                         .HasConstraintName("FK_CATALOG_ITEM");
                 });
 
-            modelBuilder.Entity("Domain.Portifolio.ProductCategory", b =>
-                {
-                    b.HasOne("Domain.Portifolio.Product", "Product")
-                        .WithMany("Categories")
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Domain.Portifolio.Tag", "Tag")
-                        .WithMany()
-                        .HasForeignKey("TagId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Product");
-
-                    b.Navigation("Tag");
-                });
-
             modelBuilder.Entity("LotSupplier", b =>
                 {
                     b.HasOne("Domain.Stock.Lot", null)
@@ -444,6 +437,21 @@ namespace Infra.EF.Migrations.SqlLite
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("ProductTag", b =>
+                {
+                    b.HasOne("Domain.Portifolio.Tag", null)
+                        .WithMany()
+                        .HasForeignKey("CategoriesId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Portifolio.Product", null)
+                        .WithMany()
+                        .HasForeignKey("ProductsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Domain.Account.Account", b =>
                 {
                     b.Navigation("ExternalProviders");
@@ -452,11 +460,6 @@ namespace Infra.EF.Migrations.SqlLite
             modelBuilder.Entity("Domain.Catalog.Catalog", b =>
                 {
                     b.Navigation("Items");
-                });
-
-            modelBuilder.Entity("Domain.Portifolio.Product", b =>
-                {
-                    b.Navigation("Categories");
                 });
 #pragma warning restore 612, 618
         }

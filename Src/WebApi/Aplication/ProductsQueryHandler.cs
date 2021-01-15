@@ -4,7 +4,6 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
-using Domain;
 using Domain.Portifolio;
 using Domain.Stock;
 using FluentResults;
@@ -26,7 +25,7 @@ namespace WebApi.Aplication
 
         public async Task<Result<QueryPagedResult<ProductQueryResult>>> Handle(ProductQuery request, CancellationToken cancellationToken)
         {
-            Expression<Func<Product, bool>> query = it => it.Description.Contains(request.SearchTerm) || it.SKU.Contains(request.SearchTerm) || it.Categories.Any(x => x.Tag.Name.Contains(request.SearchTerm));
+            Expression<Func<Product, bool>> query = it => it.Description.Contains(request.SearchTerm) || it.SKU.Contains(request.SearchTerm) || it.Categories.Any(x => x.Name.Contains(request.SearchTerm));
             if (string.IsNullOrWhiteSpace(request.SearchTerm))
                 query = it => true;
             var result = await _productRepository.GetPaged(query, request.Page, request.PageSize,
@@ -39,7 +38,7 @@ namespace WebApi.Aplication
                 p.Id,
                 p.SKU,
                 p.Description,
-                Categories = p.Categories.Select(it => it.TagId),
+                Categories = p.Categories.Select(it => it.Id),
                 s.Quantity,
                 s.ReservedQuantity
             }).ToList();
@@ -48,7 +47,7 @@ namespace WebApi.Aplication
                 p.Id,
                 p.SKU,
                 p.Description,
-                Categories = p.Categories.Select(it => it.TagId),
+                Categories = p.Categories.Select(it => it.Id),
                 Quantity = (decimal)0,
                 ReservedQuantity = (decimal)0
             }).ToList();

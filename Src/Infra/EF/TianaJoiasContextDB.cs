@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using Domain;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
 using Infra.EF.EFMappers.Portifolio;
@@ -8,7 +7,6 @@ using Domain.Portifolio;
 using Domain.Account;
 using Domain.Stock;
 using Domain.Catalog;
-using ZXing;
 
 namespace Infra.EF
 {

@@ -1,120 +1,144 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Domain.Portifolio;
 using Domain.Stock;
+using Stateless;
 
 namespace Domain.Catalog
 {
-    public class CatalogState
-    {
-        public enum States { Preparation, Ready, Sended, Delivered, Returned, Closing, Closed }
-        public CatalogState(States state, int order)
-        {
-            State = state;
-            Order = order;
-            ChangedAt = Clock.Now;
-        }
-        public States State { get; set; }
-        public DateTime ChangedAt { get; set; }
-        public int Order { get; set; }
-    }
-
     public class Catalog : BaseEntity
     {
         private readonly List<CatalogItem> _items;
-        private readonly List<CatalogState> _changes;
-        public CatalogState State { get; set; }
+        public enum States { Preparation, Ready, Sended, Delivered, Returned, Closing, Closed }
 
+        public enum Trigger { Next }
+
+        public States State { get; private set; }
+        public DateTime ChangedAt { get; private set; }
+        public decimal ItemsQuantity { get; private set; }
+        public decimal ItemsAddedQuantity { get; private set; }
+        public decimal SoldQuantity { get; private set; }
+        public Agent Agent { get; private set; }
+        public DateTime CreatedAt { get; private set; }
+        public decimal SoldValue { get; private set; }
+        public decimal ValuedAt { get; private set; }
+        public IReadOnlyCollection<CatalogItem> Items => _items.AsReadOnly();
+
+        private readonly StateMachine<States, Trigger> _stateMachine;
         protected Catalog()
         {
             _items = new List<CatalogItem>();
-            _changes = new List<CatalogState>();
+
+            _stateMachine = new StateMachine<States, Trigger>(() => State, s =>
+            {
+                ChangedAt = Clock.Now;
+                State = s;
+            });
+
+            _stateMachine.Configure(States.Preparation)
+                .Permit(Trigger.Next, States.Ready);
+
+            _stateMachine.Configure(States.Ready)
+                .Permit(Trigger.Next, States.Sended);
+
+            _stateMachine.Configure(States.Sended)
+                .Permit(Trigger.Next, States.Delivered);
+
+            _stateMachine.Configure(States.Delivered)
+                .Permit(Trigger.Next, States.Returned);
+
+            _stateMachine.Configure(States.Returned)
+                .Permit(Trigger.Next, States.Closing);
+
+            _stateMachine.Configure(States.Closing)
+                .Permit(Trigger.Next, States.Closed);
+
+            _stateMachine.Configure(States.Closed)
+                .OnEntry(() => OnClosed());
         }
 
         public Catalog(Agent channel) : this()
         {
             Agent = channel;
             CreatedAt = Clock.Now;
-            ChangeState(CatalogState.States.Preparation);
+            ItemsQuantity = 0;
+            State = States.Preparation;
+            ChangedAt = Clock.Now;
         }
 
-        private void ChangeState(CatalogState.States state)
+        private void OnClosed()
         {
-            var oldState = State;
-            State = new CatalogState(state, _changes.Count);
-            _changes.Add(State);
-            AddEvent(new CatalogStateChangedEvent(this, oldState));
+            var itemsSold = _items.Where(it => it.CurrentQuantity > 0);
+            foreach (var item in itemsSold)
+            {
+                var quantitySold = item.CurrentQuantity;
+                item.Sell(quantitySold);
+                SoldValue += item.ValueSold;
+                SoldQuantity += item.QuantitySold;
+                ItemsQuantity -= quantitySold;
+                AddEvent(new ProductConfirmedSaleEvent(quantitySold, item.LotId, item.ProdutoId, item.Price, Agent.Id));
+            }
         }
 
-        public Agent Agent { get; private set; }
-        public IReadOnlyCollection<CatalogItem> Items => _items.AsReadOnly();
-        public DateTime CreatedAt { get; private set; }
-        public decimal TotalSold { get; set; }
         public void AddItem(Product produt, Lot lot, decimal quantity)
         {
-            if (State.State == CatalogState.States.Closed) return;
-            _items.Add(new CatalogItem(produt, lot, quantity));
+            if (State == States.Closed) return;
+            var currentItem = _items.FirstOrDefault(it => it.LotId == lot.Id);
+            if (currentItem is null)
+            {
+                _items.Add(new CatalogItem(produt, lot, quantity));
+            }
+            else
+            {
+                currentItem.AddInitialQuantity(quantity);
+            }
+            ItemsQuantity += quantity;
+            ItemsAddedQuantity += quantity;
+            ValuedAt += lot.SalePrice * quantity;
             AddEvent(new ProductReservedEvent(quantity, lot.Id, produt.Id, lot.SalePrice, Agent.Id));
         }
 
         public void ReturnItem(Guid LotId, decimal quantity)
         {
-            if (State.State == CatalogState.States.Closed) return;
+            if (State == States.Closed) return;
             var item = _items.Find(it => it.LotId == LotId);
-            var quantitySold = item.CurrentQuantity - quantity;
-            item.Sell(quantitySold);
             item.Return(quantity);
-            TotalSold += item.TotalSold;
+            ItemsQuantity -= quantity;
             AddEvent(new ProductReturnedEvent(quantity, LotId, item.ProdutoId, item.Price, Agent.Id));
-            AddEvent(new ProductConfirmedSaleEvent(quantitySold, LotId, item.ProdutoId, item.Price, Agent.Id));
         }
 
-        public void CompleteClosing()
+        public void Next()
         {
-            ChangeState(CatalogState.States.Closed);
+            if (State == States.Closed) return;
+            _stateMachine.Fire(Trigger.Next);
         }
 
-        public void CompletePreparing()
+        public void ChangeCatalog(Product product, Lot lot, decimal quantity, Catalog catalog)
         {
-            ChangeState(CatalogState.States.Ready);
-        }
-
-        public void Send()
-        {
-            ChangeState(CatalogState.States.Sended);
-        }
-
-        public void Delivery()
-        {
-            ChangeState(CatalogState.States.Delivered);
-        }
-
-        public void Return()
-        {
-            ChangeState(CatalogState.States.Returned);
-        }
-
-        public void StartClosing()
-        {
-            if (State.State != CatalogState.States.Closing)
-                ChangeState(CatalogState.States.Closing);
+            if (State == States.Closed) return;
+            var item = _items.Find(it => it.LotId == lot.Id);
+            item.Return(quantity);
+            catalog.AddItem(product, lot, quantity);
+            ItemsQuantity -= quantity;
         }
     }
 
+
     public class CatalogStateChangedEvent : BaseEvent
     {
-        public CatalogStateChangedEvent(Catalog catalog, CatalogState previousState)
+        public CatalogStateChangedEvent(Catalog catalog, Catalog.States previouState)
         {
-            ChangedAt = catalog.State.ChangedAt;
-            CurrentState = catalog.State.State;
-            PreviousState = previousState.State;
-            TotalSold = catalog.TotalSold;
+            ChangedAt = catalog.ChangedAt;
+            CurrentState = catalog.State;
+            PreviousState = previouState;
+            TotalSold = catalog.SoldValue;
             AgentId = catalog.Agent.Id;
         }
 
         public DateTime ChangedAt { get; }
-        public CatalogState.States PreviousState { get; }
-        public CatalogState.States CurrentState { get; }
+        public Catalog.States? PreviousState { get; }
+        public Catalog.States CurrentState { get; }
         public decimal TotalSold { get; }
         public Guid AgentId { get; }
     }

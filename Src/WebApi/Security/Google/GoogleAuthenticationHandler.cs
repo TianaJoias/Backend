@@ -1,5 +1,4 @@
-﻿using Domain;
-using Domain.Account;
+﻿using Domain.Account;
 using Google.Apis.Auth;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Logging;

@@ -14,12 +14,12 @@ namespace Domain.Portifolio
         }
 
         public string Description { get; set; }
-        public IList<ProductCategory> Categories { get; set; } = new List<ProductCategory>();
+        public IList<Tag> Categories { get; set; } = new List<Tag>();
         public string SKU { get; set; }
 
         public void AddCategory(Tag tag)
         {
-            Categories.Add(new ProductCategory(this, tag));
+            Categories.Add(tag);
         }
 
         public void RemoveAllCategories()

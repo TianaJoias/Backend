@@ -21,16 +21,17 @@ namespace Domain.Catalog
             InitialQuantity = quantity;
             SKU = product.SKU;
         }
+
         public Guid LotId { get; private set; }
         public Guid ProdutoId { get; private set; }
         public decimal InitialQuantity { get; private set; }
-        public decimal CurrentQuantity { get; private set; }
+        public decimal CurrentQuantity { get; private set; }        
+        public decimal QuantitySold { get; private set; }
         public decimal Price { get; private set; }
         public string SKU { get; private set; }
         public string EAN { get; private set; }
         public string LongDescription { get; private set; }
-        public decimal TotalSold { get; private set; }
-
+        public decimal ValueSold { get; private set; }
         public string ShortDescription { get; private set; }
         public IList<string> Thumbnail { get; private set; }
         public bool Enabled { get; private set; }
@@ -43,7 +44,14 @@ namespace Domain.Catalog
         public void Sell(decimal quantity)
         {
             CurrentQuantity -= quantity;
-            TotalSold = quantity * Price;
+            QuantitySold += quantity;
+            ValueSold = quantity * Price;
+        }
+
+        internal void AddInitialQuantity(decimal quantity)
+        {
+            InitialQuantity += quantity;
+            CurrentQuantity = InitialQuantity;
         }
     }
     public class ProductReservedEvent : BaseEvent

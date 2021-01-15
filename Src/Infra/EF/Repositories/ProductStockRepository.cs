@@ -1,7 +1,6 @@
 using System.Linq;
 using Domain;
 using Domain.Stock;
-using Microsoft.EntityFrameworkCore;
 
 namespace Infra.EF.Repositories
 {

@@ -1,7 +1,6 @@
 ﻿using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Domain;
 using Domain.Account;
 using FluentResults;
 using WebApi.Security.Custom;

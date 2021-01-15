@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Reflection;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Domain.Catalog;
 using FluentResults;
 using Mapster;
+using static Domain.Catalog.Catalog;
 
 namespace WebApi.Aplication.Catalog
 {
@@ -27,7 +28,7 @@ namespace WebApi.Aplication.Catalog
         public async Task<Result<IList<CatalogsByAgentQueryResult>>> Handle(CatalogsByAgentQuery request, CancellationToken cancellationToken)
         {
             var catalog = await _catalogRepository.List(it => it.Agent.Id == request.OwnerId);
-            return Result.Ok(catalog.Adapt<IList<CatalogsByAgentQueryResult>>());
+            return Result.Ok(catalog.OrderByDescending(it=> it.CreatedAt).Adapt<IList<CatalogsByAgentQueryResult>>());
         }
     }
 
@@ -35,10 +36,13 @@ namespace WebApi.Aplication.Catalog
     {
         public Guid Id { get; set; }
         public DateTime CreatedAt { get; set; }
-        public DateTime? ClosedAt { get; set; }
-        public decimal TotalSold { get; set; }
+        public DateTime ChangedAt { get; set; }
+        public States State { get; set; }
+        public decimal SoldValue { get; set; }
         public int ItemsQuantity { get; set; }
-        public decimal TotalValue { get; set; }
+        public decimal ValuedAt { get; set; }
+        public decimal ItemsAddedQuantity { get; set; }
+        public decimal SoldQuantity { get; set; }
     }
     public class CatalogQueryResult : CatalogsByAgentQueryResult
     {

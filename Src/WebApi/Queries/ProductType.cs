@@ -1,5 +1,4 @@
 ﻿using System.Linq;
-using Domain;
 using Domain.Portifolio;
 using GraphQL.Types;
 
@@ -15,7 +14,7 @@ namespace WebApi.Queries
             Field(x => x.Description).Description("Description of product");
             Field<ListGraphType<GuidGraphType>>("Categories", description: "Categories of the product", resolve: context =>
             {
-                return context.Source.Categories.Select(it => it.TagId);
+                return context.Source.Categories.Select(it => it.Id);
             });
         }
     }

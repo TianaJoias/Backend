@@ -1,7 +1,4 @@
-﻿using Domain;
-using FluentResults;
-
-namespace WebApi.Aplication
+﻿namespace WebApi.Aplication
 {
     public record ProductQuery : PaginationQuery, IQuery<QueryPagedResult<ProductQueryResult>>
     {

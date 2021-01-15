@@ -8,8 +8,7 @@ using Domain.Catalog;
 using Domain.Portifolio;
 using Domain.Stock;
 using FluentResults;
-using Google.Apis.Util;
-using MediatR;
+using static Domain.Catalog.Catalog;
 
 namespace WebApi.Aplication.Catalog
 {
@@ -33,6 +32,7 @@ namespace WebApi.Aplication.Catalog
         public async Task<Result> Handle(CatalogAddPackageCommand request, CancellationToken cancellationToken)
         {
             var (agent, products, lots, catalog) = await GetData(request);
+            var newCatalog = catalog is null;
             catalog ??= new Domain.Catalog.Catalog(agent);
             var errors = new List<Result>();
             if (agent is null)
@@ -46,8 +46,11 @@ namespace WebApi.Aplication.Catalog
                 catalog.AddItem(produt, lot, item.Quantity);
             }
             if (request.CompletePreparing)
-                catalog.CompletePreparing();
-            await _catalogRepository.Add(catalog);
+                catalog.Next();
+            if (newCatalog)
+                await _catalogRepository.Add(catalog);
+            else
+                await _catalogRepository.Update(catalog);
             await _agentRepository.Update(agent);
             await _unitOfWork.Commit();
             return Result.Ok();
@@ -57,7 +60,7 @@ namespace WebApi.Aplication.Catalog
             var lotsIds = request.Items.Select(it => it.LotId).ToList();
             var lotsTask = _lotRepository.List(it => lotsIds.Contains(it.Id));
             var agentTask = _agentRepository.GetByQuery(it => it.Id == request.AgentId && it.AccountableId == request.AccountableId);
-            var catalogTask = _catalogRepository.GetByQuery(it => it.Agent.AccountableId == request.AccountableId && it.Agent.Id == request.AgentId && it.State.State == CatalogState.States.Preparation);
+            var catalogTask = _catalogRepository.GetByQuery(it => it.Agent.AccountableId == request.AccountableId && it.Agent.Id == request.AgentId && it.State == States.Preparation);
             await Task.WhenAll(lotsTask, agentTask, catalogTask);
             var lots = await lotsTask;
             var productsIds = lots.Select(it => it.ProductId).ToList();
@@ -66,9 +69,9 @@ namespace WebApi.Aplication.Catalog
         }
     }
 
-    public record CatalogAddPackageCommand(Guid AgentId, Guid AccountableId, IList<CatalogOpenItemCommand> Items, bool CompletePreparing) : ICommand;
+    public record CatalogAddPackageCommand(Guid AgentId, Guid AccountableId, IList<CatalogAddPackageItemCommand> Items, bool CompletePreparing) : ICommand;
 
-    public record CatalogOpenItemCommand
+    public record CatalogAddPackageItemCommand
     {
         public Guid LotId { get; init; }
         public decimal Quantity { get; init; }

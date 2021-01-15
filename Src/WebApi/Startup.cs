@@ -24,13 +24,9 @@ using GraphQL.Validation;
 using GraphQL.Authorization;
 using Microsoft.AspNetCore.Http;
 using System.Collections.Generic;
-using Infra;
 using OpenTelemetry.Trace;
 using Domain.Account;
 using Domain.Portifolio;
-using Microsoft.AspNet.OData.Builder;
-using Microsoft.OData.Edm;
-using Microsoft.AspNet.OData.Extensions;
 using WebApi.Aplication.Catalog;
 using Domain.Catalog;
 using System.Linq;
@@ -170,15 +166,15 @@ namespace WebApi
             });
             app.UseVersionedSwagger(provider);
             TianaJoiasContextDB.Seeding(dataContext, passwordService).Wait();
-            TypeAdapterConfig<ProductCategory, Guid>
-                .NewConfig()
-                .MapWith(orgin => orgin.TagId);
-            TypeAdapterConfig<Catalog, CatalogsByAgentQueryResult>
-                .NewConfig()
-                .Map(dest => dest.TotalValue,
-                    src =>
-                    src.Items.Sum(it => it.Price * it.InitialQuantity))
-                .Map(dest => dest.ItemsQuantity, src => src.Items.Sum(it => it.InitialQuantity));
+            //TypeAdapterConfig<ProductCategory, Guid>
+            //    .NewConfig()
+            //    .MapWith(orgin => orgin.TagId);
+            //TypeAdapterConfig<Catalog, CatalogsByAgentQueryResult>
+            //    .NewConfig()
+            //    .Map(dest => dest.TotalValue,
+            //        src =>
+            //        src.Items.Sum(it => it.Price * it.InitialQuantity))
+            //    .Map(dest => dest.ItemsQuantity, src => src.Items.Sum(it => it.InitialQuantity));
         }
     }
 }

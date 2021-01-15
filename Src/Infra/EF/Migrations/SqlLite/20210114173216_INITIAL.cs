@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Infra.EF.Migrations.SqlLite
 {
-    public partial class Initial : Migration
+    public partial class INITIAL : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -159,24 +159,24 @@ namespace Infra.EF.Migrations.SqlLite
                 });
 
             migrationBuilder.CreateTable(
-                name: "ProductCategory",
+                name: "Categories",
                 columns: table => new
                 {
-                    ProductId = table.Column<Guid>(type: "TEXT", nullable: false),
-                    TagId = table.Column<Guid>(type: "TEXT", nullable: false)
+                    CategoriesId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    ProductsId = table.Column<Guid>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ProductCategory", x => new { x.ProductId, x.TagId });
+                    table.PrimaryKey("PK_Categories", x => new { x.CategoriesId, x.ProductsId });
                     table.ForeignKey(
-                        name: "FK_ProductCategory_Products_ProductId",
-                        column: x => x.ProductId,
+                        name: "FK_Categories_Products_ProductsId",
+                        column: x => x.ProductsId,
                         principalTable: "Products",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_ProductCategory_Tags_TagId",
-                        column: x => x.TagId,
+                        name: "FK_Categories_Tags_CategoriesId",
+                        column: x => x.CategoriesId,
                         principalTable: "Tags",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -187,10 +187,13 @@ namespace Infra.EF.Migrations.SqlLite
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "TEXT", nullable: false),
+                    State = table.Column<int>(type: "INTEGER", nullable: false),
+                    ChangedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    ItemsQuantity = table.Column<decimal>(type: "TEXT", nullable: false),
                     AgentId = table.Column<Guid>(type: "TEXT", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    ClosedAt = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    TotalSold = table.Column<decimal>(type: "TEXT", nullable: false)
+                    SoldValue = table.Column<decimal>(type: "TEXT", nullable: false),
+                    ValuedAt = table.Column<decimal>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -225,11 +228,12 @@ namespace Infra.EF.Migrations.SqlLite
                     ProdutoId = table.Column<Guid>(type: "TEXT", nullable: false),
                     InitialQuantity = table.Column<decimal>(type: "TEXT", nullable: false),
                     CurrentQuantity = table.Column<decimal>(type: "TEXT", nullable: false),
+                    QuantitySold = table.Column<decimal>(type: "TEXT", nullable: false),
                     Price = table.Column<decimal>(type: "TEXT", nullable: false),
                     SKU = table.Column<string>(type: "TEXT", nullable: true),
                     EAN = table.Column<string>(type: "TEXT", nullable: true),
                     LongDescription = table.Column<string>(type: "TEXT", nullable: true),
-                    TotalSold = table.Column<decimal>(type: "TEXT", nullable: false),
+                    ValueSold = table.Column<decimal>(type: "TEXT", nullable: false),
                     ShortDescription = table.Column<string>(type: "TEXT", nullable: true),
                     Thumbnail = table.Column<string>(type: "TEXT", nullable: true),
                     Enabled = table.Column<bool>(type: "INTEGER", nullable: false),
@@ -262,6 +266,11 @@ namespace Infra.EF.Migrations.SqlLite
                 column: "AgentId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Categories_ProductsId",
+                table: "Categories",
+                column: "ProductsId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_IdentityProviders_AccountId",
                 table: "IdentityProviders",
                 column: "AccountId");
@@ -270,11 +279,6 @@ namespace Infra.EF.Migrations.SqlLite
                 name: "IX_LotSupplier_SuppliersId",
                 table: "LotSupplier",
                 column: "SuppliersId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_ProductCategory_TagId",
-                table: "ProductCategory",
-                column: "TagId");
 
             migrationBuilder.AddForeignKey(
                 name: "FK_Catalogs_Agents_AgentId",
@@ -295,6 +299,9 @@ namespace Infra.EF.Migrations.SqlLite
                 name: "CatalogItems");
 
             migrationBuilder.DropTable(
+                name: "Categories");
+
+            migrationBuilder.DropTable(
                 name: "EAN");
 
             migrationBuilder.DropTable(
@@ -304,10 +311,13 @@ namespace Infra.EF.Migrations.SqlLite
                 name: "LotSupplier");
 
             migrationBuilder.DropTable(
-                name: "ProductCategory");
+                name: "ProductStock");
 
             migrationBuilder.DropTable(
-                name: "ProductStock");
+                name: "Products");
+
+            migrationBuilder.DropTable(
+                name: "Tags");
 
             migrationBuilder.DropTable(
                 name: "Accounts");
@@ -317,12 +327,6 @@ namespace Infra.EF.Migrations.SqlLite
 
             migrationBuilder.DropTable(
                 name: "Suppliers");
-
-            migrationBuilder.DropTable(
-                name: "Products");
-
-            migrationBuilder.DropTable(
-                name: "Tags");
 
             migrationBuilder.DropTable(
                 name: "Catalogs");

@@ -10,7 +10,6 @@ namespace Infra.EF.EFMappers.Catalog
         {
 
             base.Configure(builder);
-
             builder.ToTable("CatalogItems");
             builder.Property(it => it.EAN);
             builder.Property(it => it.Enabled);
@@ -22,7 +21,8 @@ namespace Infra.EF.EFMappers.Catalog
             builder.Property(it => it.CurrentQuantity);
             builder.Property(it => it.ShortDescription);
             builder.Property(it => it.SKU);
-            builder.Property(it => it.TotalSold);
+            builder.Property(it => it.ValueSold);
+            builder.Property(it => it.QuantitySold);
             builder.Property(it => it.Thumbnail).HasJsonConversion();
         }
     }

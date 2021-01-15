@@ -7,9 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="BCrypt.Net-Next" Version="4.0.0" />
+    <PackageReference Include="BCrypt.Net-Next" Version="4.0.2" />
     <PackageReference Include="MediatR" Version="9.0.0" />
-    <PackageReference Include="FluentResults" Version="2.2.0" />
+    <PackageReference Include="FluentResults" Version="2.3.0" />
+    <PackageReference Include="Stateless" Version="5.1.7" />
   </ItemGroup>
 
 </Project>

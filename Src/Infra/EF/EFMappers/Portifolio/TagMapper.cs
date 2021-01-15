@@ -1,5 +1,4 @@
-﻿using Domain;
-using Domain.Portifolio;
+﻿using Domain.Portifolio;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -12,6 +11,8 @@ namespace Infra.EF.EFMappers.Portifolio
             base.Configure(builder);
             builder.ToTable("Tags");
             builder.Property(x => x.Name);
+
+            builder.HasMany(it => it.Products).WithMany(it => it.Categories).UsingEntity(j => j.ToTable("Categories"));
         }
     }
 }
