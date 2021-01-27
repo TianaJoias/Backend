@@ -5,7 +5,9 @@ using Domain;
 using Mapster;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using WebApi.Aplication;
 using WebApi.Aplication.Catalog;
+using static Domain.Catalog.Catalog;
 
 namespace WebApi.Controllers
 {
@@ -67,14 +69,15 @@ namespace WebApi.Controllers
             var result = await _mediator.Send(command);
             return result.ToActionResult();
         }
-        
+
         [HttpPost("{id:guid}/catalogs/{catalogId:guid}/transfer")]
         public async Task<IActionResult> transfer(Guid id, Guid catalogId, [FromBody] CatalogItemTransferPackageRequest request)
         {
-            var command = new CatalogClosePackageCommand
+            var command = new CatalogTransferItemsCommand
             {
-                OwnerId = id,
-                CatalogId = catalogId,
+                AgentId = id,
+                FromCatalogId = catalogId,
+                ToCatalogId = request.ToCatalogId,
                 Items = request.Items
             };
             var result = await _mediator.Send(command);
@@ -96,17 +99,19 @@ namespace WebApi.Controllers
         }
 
         [HttpGet("me/catalogs")]
-        public async Task<IActionResult> Catalogs()
+        public async Task<IActionResult> Catalogs([FromQuery] CatalogQueryString catalogQueryString)
         {
-            var command = new CatalogsByAgentQuery(User.GetId());
+            var command = catalogQueryString.Adapt<CatalogsByAgentQuery>();
+            command.OwnerId = User.GetId();
             var result = await _mediator.Send(command);
             return result.ToActionResult();
         }
 
         [HttpGet("{id:guid}/catalogs")]
-        public async Task<IActionResult> Catalogs(Guid id)
+        public async Task<IActionResult> Catalogs(Guid id, [FromQuery] CatalogQueryString catalogQueryString)
         {
-            var command = new CatalogsByAgentQuery(id);
+            var command = catalogQueryString.Adapt<CatalogsByAgentQuery>();
+            command.OwnerId = id;
             var result = await _mediator.Send(command);
             return result.ToActionResult();
         }
@@ -121,12 +126,19 @@ namespace WebApi.Controllers
         }
     }
 
+    public record CatalogQueryString : PaginationQuery
+    {
+        public DateTime? FromDate { get; set; }
+        public DateTime? ToDate { get; set; }
+        public List<States> States { get; set; }
+    }
+
     public record CatalogItemTransferPackageRequest
     {
         public IList<CatalogClosePackageItemCommand> Items { get; init; }
         public Guid ToCatalogId { get; set; }
     }
-    
+
     public record CatalogClosePackageRequest
     {
         public IList<CatalogClosePackageItemCommand> Items { get; init; }

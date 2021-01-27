@@ -1,0 +1,68 @@
+name: BuildPipeline
+
+# Run this workflow every time a new commit pushed to your repository
+on:
+  push:
+    branches:
+      - master
+  # pull_request:
+  #     - master\
+env:
+  AZURE_WEBAPP_NAME: tianajoiasapi # set this to your application's name
+  CONTAINER_REGISTRY: ${{ secrets.CONTAINER_REGISTRY }} # set secret with Container Registry URL, example : xyz.azurecr.io
+  CONTAINER_REPOSITORY: tianajoiasapi
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      # - name: Use Node.js
+      #   uses: actions/setup-node@v1
+      #   with:
+      #     node-version: 14.x
+      # - run: yarn
+      # - run: yarn build
+      - uses: azure/docker-login@v1
+        with:
+          login-server: ${{ env.CONTAINER_REGISTRY }}
+          username: ${{ secrets.REGISTRY_USERNAME }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
+      - run: |
+          docker build . -t ${{ env.CONTAINER_REGISTRY }}/${{ env.CONTAINER_REPOSITORY }}:${{ github.run_id }}.${{ github.run_number }}
+          docker push ${{ env.CONTAINER_REGISTRY }}/${{ env.CONTAINER_REPOSITORY }}:${{github.run_id }}.${{ github.run_number }}
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: azure/webapps-deploy@v2
+        with:
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          publish-profile: ${{ secrets.API_WEBAPP_PUBLISH_PROFILE }}
+          images: '${{ env.CONTAINER_REGISTRY }}/${{ env.CONTAINER_REPOSITORY }}:${{github.run_id }}.${{ github.run_number }}'
+          app-settings-json: |
+            [
+                {
+                    "name": "DOCKER_REGISTRY_SERVER_PASSWORD",
+                    "value": "${{ secrets.REGISTRY_PASSWORD }}",
+                    "slotSetting": false
+                },
+                {
+                    "name": "DOCKER_REGISTRY_SERVER_URL",
+                    "value": ${{ env.CONTAINER_REGISTRY }},
+                    "slotSetting": false
+                },
+                {
+                    "name": "DOCKER_REGISTRY_SERVER_USERNAME",
+                    "value": "${{ secrets.REGISTRY_USERNAME  }}",
+                    "slotSetting": false
+                },
+                {
+                    "name": "ASPNETCORE_ENVIRONMENT",
+                    "value": "${{ secrets.PSQL_CONNECTIONSTRING  }}",
+                    "slotSetting": false
+                },
+                {
+                    "name": "WEBSITES_PORT",
+                    "value": "443",
+                    "slotSetting": false
+                },                
+            ]

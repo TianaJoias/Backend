@@ -103,9 +103,12 @@ namespace Domain.Catalog
         {
             if (State == States.Closed) return;
             var item = _items.Find(it => it.LotId == LotId);
-            item.Return(quantity);
-            ItemsQuantity -= quantity;
-            AddEvent(new ProductReturnedEvent(quantity, LotId, item.ProdutoId, item.Price, Agent.Id));
+            if (item.HasQuantity(quantity))
+            {
+                item.Return(quantity);
+                ItemsQuantity -= quantity;
+                AddEvent(new ProductReturnedEvent(quantity, LotId, item.ProdutoId, item.Price, Agent.Id));
+            }
         }
 
         public void Next()

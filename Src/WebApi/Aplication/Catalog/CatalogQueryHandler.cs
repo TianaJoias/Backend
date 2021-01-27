@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Domain;
 using Domain.Catalog;
 using FluentResults;
+using Infra;
 using Mapster;
 using static Domain.Catalog.Catalog;
 
@@ -27,8 +30,16 @@ namespace WebApi.Aplication.Catalog
 
         public async Task<Result<IList<CatalogsByAgentQueryResult>>> Handle(CatalogsByAgentQuery request, CancellationToken cancellationToken)
         {
-            var catalog = await _catalogRepository.List(it => it.Agent.Id == request.OwnerId);
-            return Result.Ok(catalog.OrderByDescending(it=> it.CreatedAt).Adapt<IList<CatalogsByAgentQueryResult>>());
+            Expression<Func<Domain.Catalog.Catalog, bool>> baseWhere = it => it.Agent.Id == request.OwnerId;
+
+            if (request.States is not null && request.States.Any())
+                baseWhere = baseWhere.And(it => request.States.Contains(it.State));
+            if (request.FromDate is not null)
+                baseWhere = baseWhere.And(it => it.CreatedAt >= request.FromDate.Value.Date);
+            if (request.ToDate is not null)
+                baseWhere = baseWhere.And(it => it.CreatedAt <= request.ToDate.Value.Date.AddDays(1));
+            var catalog = await _catalogRepository.GetPaged(baseWhere, request.Page, request.PageSize, request.OrderBy);
+            return Result.Ok(catalog.Records.Adapt<IList<CatalogsByAgentQueryResult>>());
         }
     }
 
@@ -65,7 +76,22 @@ namespace WebApi.Aplication.Catalog
         public bool Enabled { get; set; }
     }
 
-    public record CatalogsByAgentQuery(Guid OwnerId) : IQuery<IList<CatalogsByAgentQueryResult>>;
+    public abstract class BaseQuery<T> : IQuery<T>
+    {
+        public string Term { get; set; }
+        public int Page { get; init; } = 1;
+        public int PageSize { get; init; } = 5;
+        public Dictionary<string, Sort> OrderBy { get; init; } = new Dictionary<string, Sort> { { "CreatedAt", Sort.Desc } };
+        public DateTime? FromDate { get; set; }
+        public DateTime? ToDate { get; set; }
+        public IList<States> States { get; set; }
+        public Guid OwnerId { get; set; }
+    }
 
-    public record CatalogQuery(Guid CatalogId, Guid OwnerId) : IQuery<CatalogQueryResult>;
+    public class CatalogsByAgentQuery : BaseQuery<IList<CatalogsByAgentQueryResult>>
+    {
+
+    }
+
+    public record CatalogQuery(Guid CatalogId, Guid OwnerId) : PaginationQuery, IQuery<CatalogQueryResult>;
 }

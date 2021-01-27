@@ -30,6 +30,9 @@ using Domain.Portifolio;
 using WebApi.Aplication.Catalog;
 using Domain.Catalog;
 using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
+using System.Text.Json;
 
 namespace WebApi
 {
@@ -160,21 +163,46 @@ namespace WebApi
 
             // use graphql-playground at default url https://localhost:5001/ui/playground
             app.UseGraphQLPlayground();
+
+            app.UseMiddleware<ErrorHandlerMiddleware>();
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
             });
             app.UseVersionedSwagger(provider);
+
             TianaJoiasContextDB.Seeding(dataContext, passwordService).Wait();
-            //TypeAdapterConfig<ProductCategory, Guid>
-            //    .NewConfig()
-            //    .MapWith(orgin => orgin.TagId);
-            //TypeAdapterConfig<Catalog, CatalogsByAgentQueryResult>
-            //    .NewConfig()
-            //    .Map(dest => dest.TotalValue,
-            //        src =>
-            //        src.Items.Sum(it => it.Price * it.InitialQuantity))
-            //    .Map(dest => dest.ItemsQuantity, src => src.Items.Sum(it => it.InitialQuantity));
+        }
+    }
+
+    public class ErrorHandlerMiddleware
+    {
+        private readonly RequestDelegate _next;
+
+        public ErrorHandlerMiddleware(RequestDelegate next)
+        {
+            _next = next;
+        }
+
+        public async Task Invoke(HttpContext context)
+        {
+            try
+            {
+                await _next(context);
+            }
+            catch (Exception error)
+            {
+                var response = context.Response;
+                response.ContentType = "application/json";
+
+                response.StatusCode = error switch
+                {
+                    UnauthorizedAccessException e => StatusCodes.Status401Unauthorized,// not found error
+                    _ => (int)HttpStatusCode.InternalServerError,// unhandled error
+                };
+                var result = JsonSerializer.Serialize(new { message = error?.Message });
+                await response.WriteAsync(result);
+            }
         }
     }
 }

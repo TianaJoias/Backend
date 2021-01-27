@@ -25,7 +25,7 @@ namespace Domain.Catalog
         public Guid LotId { get; private set; }
         public Guid ProdutoId { get; private set; }
         public decimal InitialQuantity { get; private set; }
-        public decimal CurrentQuantity { get; private set; }        
+        public decimal CurrentQuantity { get; private set; }
         public decimal QuantitySold { get; private set; }
         public decimal Price { get; private set; }
         public string SKU { get; private set; }
@@ -52,6 +52,11 @@ namespace Domain.Catalog
         {
             InitialQuantity += quantity;
             CurrentQuantity = InitialQuantity;
+        }
+
+        internal bool HasQuantity(decimal quantiy)
+        {
+            return CurrentQuantity >= quantiy;
         }
     }
     public class ProductReservedEvent : BaseEvent

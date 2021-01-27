@@ -137,10 +137,11 @@ namespace WebApi.Controllers
         public static Guid GetId(this ClaimsPrincipal user)
         {
             var value = user.FindFirstValue(JwtRegisteredClaimNames.Sub);
+            if (value is null)
+                throw new UnauthorizedAccessException("User Not Found.");
             return Guid.Parse(value);
         }
     }
-
 
     public record TagDTO
     {

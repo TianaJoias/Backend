@@ -12,7 +12,6 @@ namespace Infra.EF
 {
     public sealed class TianaJoiasContextDB : DbContext
     {
-        public static string SqlLiteConnectionName = "TianaJoiasConnectionString-SqlLite";
         public TianaJoiasContextDB(DbContextOptions options) : base(options) { }
 
         public DbSet<Product> Products { get; set; }
