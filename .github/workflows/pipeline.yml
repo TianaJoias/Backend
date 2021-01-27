@@ -56,7 +56,7 @@ jobs:
                     "slotSetting": false
                 },
                 {
-                    "name": "ASPNETCORE_ENVIRONMENT",
+                    "name": "ASPNETCORE_ConnectionStrings__NPGSQL",
                     "value": "${{ secrets.PSQL_CONNECTIONSTRING  }}",
                     "slotSetting": false
                 },
