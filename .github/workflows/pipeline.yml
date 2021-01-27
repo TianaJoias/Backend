@@ -31,7 +31,8 @@ jobs:
           cd ./Src/WebApi
           docker build . -t ${{ env.CONTAINER_REGISTRY }}/${{ env.CONTAINER_REPOSITORY }}:${{ github.run_id }}.${{ github.run_number }}
           docker push ${{ env.CONTAINER_REGISTRY }}/${{ env.CONTAINER_REPOSITORY }}:${{github.run_id }}.${{ github.run_number }}
-  deploy:
+  deploy:  
+    needs: build
     runs-on: ubuntu-latest
     steps:
       - uses: azure/webapps-deploy@v2
