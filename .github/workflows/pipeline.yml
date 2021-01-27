@@ -28,7 +28,6 @@ jobs:
           username: ${{ secrets.REGISTRY_USERNAME }}
           password: ${{ secrets.REGISTRY_PASSWORD }}
       - run: |
-          cd ./Src/WebApi
           docker build . -t ${{ env.CONTAINER_REGISTRY }}/${{ env.CONTAINER_REPOSITORY }}:${{ github.run_id }}.${{ github.run_number }}
           docker push ${{ env.CONTAINER_REGISTRY }}/${{ env.CONTAINER_REPOSITORY }}:${{github.run_id }}.${{ github.run_number }}
   deploy:  
