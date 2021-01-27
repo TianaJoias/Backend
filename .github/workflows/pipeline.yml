@@ -38,31 +38,3 @@ jobs:
           app-name: ${{ env.AZURE_WEBAPP_NAME }}
           publish-profile: ${{ secrets.API_WEBAPP_PUBLISH_PROFILE }}
           images: '${{ env.CONTAINER_REGISTRY }}/${{ env.CONTAINER_REPOSITORY }}:${{github.run_id }}.${{ github.run_number }}'
-          app-settings-json: |
-            [
-                {
-                    "name": "DOCKER_REGISTRY_SERVER_PASSWORD",
-                    "value": "${{ secrets.REGISTRY_PASSWORD }}",
-                    "slotSetting": false
-                },
-                {
-                    "name": "DOCKER_REGISTRY_SERVER_URL",
-                    "value": ${{ env.CONTAINER_REGISTRY }},
-                    "slotSetting": false
-                },
-                {
-                    "name": "DOCKER_REGISTRY_SERVER_USERNAME",
-                    "value": "${{ secrets.REGISTRY_USERNAME  }}",
-                    "slotSetting": false
-                },
-                {
-                    "name": "ASPNETCORE_ConnectionStrings__NPGSQL",
-                    "value": "${{ secrets.PSQL_CONNECTIONSTRING  }}",
-                    "slotSetting": false
-                },
-                {
-                    "name": "WEBSITES_PORT",
-                    "value": "443",
-                    "slotSetting": false
-                },                
-            ]
