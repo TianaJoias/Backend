@@ -27,6 +27,9 @@ namespace WebApi.Aplication.Catalog
         }
         public async Task<Result> Handle(CreateAgentCommand request, CancellationToken cancellationToken)
         {
+            var exists = await _accountRepository.Exists(it => it.User.Email.ToUpper() == request.Email.ToUpper());
+            if (exists)
+                return Result.Fail("Email already exists.");
             var password = await _passwordService.Hash("password");
             var account = new Domain.Account.Account
             {

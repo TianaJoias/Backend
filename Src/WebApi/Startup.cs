@@ -9,67 +9,14 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using WebApi.Extensions;
-using WebApi.Queries;
 using WebApi.Security;
-using GraphQL.Server;
-using System.Security.Claims;
-using Microsoft.Extensions.Logging;
 using Infra.EF;
-using GraphQL.Types;
-using Mapster;
-using Domain;
-using System;
-using Microsoft.Extensions.DependencyInjection.Extensions;
-using GraphQL.Validation;
-using GraphQL.Authorization;
-using Microsoft.AspNetCore.Http;
-using System.Collections.Generic;
 using OpenTelemetry.Trace;
 using Domain.Account;
-using Domain.Portifolio;
-using WebApi.Aplication.Catalog;
-using Domain.Catalog;
-using System.Linq;
-using System.Net;
-using System.Threading.Tasks;
-using System.Text.Json;
+using WebApi.Filters;
 
 namespace WebApi
 {
-    public class GraphQLUserContext : Dictionary<string, object>, IProvideClaimsPrincipal
-    {
-        public ClaimsPrincipal User { get; set; }
-    }
-    public static class GraphQLAuthExtensions
-    {
-        public static void AddGraphQLAuth(this IServiceCollection services, Action<AuthorizationSettings, IServiceProvider> configure)
-        {
-            services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-            services.TryAddSingleton<IAuthorizationEvaluator, AuthorizationEvaluator>();
-            services.AddTransient<IValidationRule, AuthorizationValidationRule>();
-
-            services.TryAddTransient(s =>
-            {
-                var authSettings = new AuthorizationSettings();
-                configure(authSettings, s);
-                return authSettings;
-            });
-        }
-
-        public static void AddGraphQLAuth(this IServiceCollection services, Action<AuthorizationSettings> configure)
-        {
-            services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-            services.TryAddSingleton<IAuthorizationEvaluator, AuthorizationEvaluator>();
-            services.AddTransient<IValidationRule, AuthorizationValidationRule>();
-
-            services.TryAddSingleton(s =>
-            {
-                var authSettings = new AuthorizationSettings();
-                configure(authSettings);
-                return authSettings;
-            });
-        }
-    }
     public class Startup
     {
         public Startup(IConfiguration configuration)
@@ -115,33 +62,7 @@ namespace WebApi
             });
 
             services.AddSingleton<IPasswordService, PasswordService>();
-            services.AddSingleton<ProductQuery>();
-            services.AddSingleton<TianaJoiasSchema>();
-            services.AddSingleton<ProductType>();
-            services.AddSingleton<ProductSortType>();
-            services.AddSingleton<ProductWhereClauseType>();
-            services.AddSingleton<ObjectGraphType<PagedResultType<Product, ProductType>>>();
-            services.AddSingleton<EnumerationGraphType<Sort>>();
-            services.AddGraphQLAuth((_, s) =>
-            {
-                _.AddPolicy("AdminPolicy", p => p.RequireClaim("role", "Admin"));
-            });
             services.AddHttpContextAccessor();
-            services.AddGraphQL((options, provider) =>
-            {
-                options.EnableMetrics = true;
-                //options.excep ExposeExceptions = true;
-                var logger = provider.GetRequiredService<ILogger<Startup>>();
-                options.NameConverter = new GraphQL.Conversion.CamelCaseNameConverter();
-                options.UnhandledExceptionDelegate = ctx => logger.LogError("{Error} occured", ctx.OriginalException.Message);
-            })
-            .AddSystemTextJson()
-            .AddUserContextBuilder(context =>
-            {
-                return new GraphQLUserContext { User = context.User };
-            })
-            .AddGraphTypes(typeof(TianaJoiasSchema))
-            .AddDataLoader();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -153,16 +74,11 @@ namespace WebApi
                 app.UseDeveloperExceptionPage();
             }
 
-            var validationRules = app.ApplicationServices.GetServices<IValidationRule>();
             app.UseHttpsRedirection();
             app.UseCors("mypolicy");
             app.UseRouting();
             app.UseAuthentication();
             app.UseAuthorization();
-            app.UseGraphQL<TianaJoiasSchema>();
-
-            // use graphql-playground at default url https://localhost:5001/ui/playground
-            app.UseGraphQLPlayground();
 
             app.UseMiddleware<ErrorHandlerMiddleware>();
             app.UseEndpoints(endpoints =>
@@ -172,37 +88,6 @@ namespace WebApi
             app.UseVersionedSwagger(provider);
 
             TianaJoiasContextDB.Seeding(dataContext, passwordService).Wait();
-        }
-    }
-
-    public class ErrorHandlerMiddleware
-    {
-        private readonly RequestDelegate _next;
-
-        public ErrorHandlerMiddleware(RequestDelegate next)
-        {
-            _next = next;
-        }
-
-        public async Task Invoke(HttpContext context)
-        {
-            try
-            {
-                await _next(context);
-            }
-            catch (Exception error)
-            {
-                var response = context.Response;
-                response.ContentType = "application/json";
-
-                response.StatusCode = error switch
-                {
-                    UnauthorizedAccessException e => StatusCodes.Status401Unauthorized,// not found error
-                    _ => (int)HttpStatusCode.InternalServerError,// unhandled error
-                };
-                var result = JsonSerializer.Serialize(new { message = error?.Message });
-                await response.WriteAsync(result);
-            }
         }
     }
 }
