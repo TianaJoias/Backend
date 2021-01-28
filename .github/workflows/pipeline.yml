@@ -9,8 +9,7 @@ on:
   #     - master\
 env:
   AZURE_WEBAPP_NAME: tianajoiasapi # set this to your application's name
-  CONTAINER_REPOSITORY: tianajoiasapi
-  IMAGE_NAME_TAG:  ${{ secrets.CONTAINER_REGISTRY }}/${{ env.CONTAINER_REPOSITORY }}:${{ github.run_id }}.${{ github.run_number }};
+  IMAGE_NAME_TAG:  ${{ secrets.CONTAINER_REGISTRY }}/tianajoiasapi:${{ github.run_id }}.${{ github.run_number }};
 jobs:
   build:
     runs-on: ubuntu-latest
