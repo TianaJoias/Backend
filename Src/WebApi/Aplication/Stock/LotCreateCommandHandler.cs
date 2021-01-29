@@ -16,15 +16,13 @@ namespace WebApi.Aplication.Stock
     {
         private readonly ILotRepository _lotRepository;
         private readonly ISupplierRepository _supplierRepository;
-        private readonly IProductRepository _productRepository;
         private readonly IEANRepository _iEANRepository;
         private readonly IUnitOfWork _unitOfWork;
 
-        public LotCreateCommandHandler(ILotRepository lotRepository, ISupplierRepository supplierRepository, IProductRepository productRepository, IEANRepository iEANRepository, IUnitOfWork unitOfWork)
+        public LotCreateCommandHandler(ILotRepository lotRepository, ISupplierRepository supplierRepository, IEANRepository iEANRepository, IUnitOfWork unitOfWork)
         {
             _lotRepository = lotRepository;
             _supplierRepository = supplierRepository;
-            _productRepository = productRepository;
             _iEANRepository = iEANRepository;
             _unitOfWork = unitOfWork;
         }

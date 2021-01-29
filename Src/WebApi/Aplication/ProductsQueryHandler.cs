@@ -25,7 +25,7 @@ namespace WebApi.Aplication
 
         public async Task<Result<QueryPagedResult<ProductQueryResult>>> Handle(ProductQuery request, CancellationToken cancellationToken)
         {
-            Expression<Func<Product, bool>> query = it => it.Description.Contains(request.SearchTerm) || it.SKU.Contains(request.SearchTerm) || it.Categories.Any(x => x.Name.Contains(request.SearchTerm));
+            Expression<Func<Product, bool>> query = it => it.Description.Contains(request.SearchTerm) || it.SKU.Contains(request.SearchTerm) || it.Tags.Any(x => x.Name.Contains(request.SearchTerm));
             if (string.IsNullOrWhiteSpace(request.SearchTerm))
                 query = it => true;
             var result = await _productRepository.GetPaged(query, request.Page, request.PageSize,
@@ -38,7 +38,7 @@ namespace WebApi.Aplication
                 p.Id,
                 p.SKU,
                 p.Description,
-                Categories = p.Categories.Select(it => it.Id),
+                Tags = p.Tags.Select(it => it.Id),
                 s.Quantity,
                 s.ReservedQuantity
             }).ToList();
@@ -47,7 +47,7 @@ namespace WebApi.Aplication
                 p.Id,
                 p.SKU,
                 p.Description,
-                Categories = p.Categories.Select(it => it.Id),
+                Tags = p.Tags.Select(it => it.Id),
                 Quantity = (decimal)0,
                 ReservedQuantity = (decimal)0
             }).ToList();
@@ -76,7 +76,7 @@ namespace WebApi.Aplication
         public Guid? Id { get; init; }
         public string SKU { get; init; }
         public string Description { get; init; }
-        public IList<Guid> Categories { get; init; }
+        public IList<Guid> Tags { get; init; }
         public decimal ReservedQuantity { get; set; }
         public decimal Quantity { get; set; }
     }

@@ -12,7 +12,7 @@ namespace Infra.EF.Repositories
 
         public override IQueryable<Product> Load(IQueryable<Product> query)
         {
-            return query.Include(it => it.Categories);
+            return query.Include(it => it.Tags);
         }
     }
 }

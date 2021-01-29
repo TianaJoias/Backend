@@ -12,7 +12,7 @@ namespace Infra.EF.EFMappers.Portifolio
             builder.ToTable("Tags");
             builder.Property(x => x.Name);
 
-            builder.HasMany(it => it.Products).WithMany(it => it.Categories).UsingEntity(j => j.ToTable("Categories"));
+            builder.HasMany(it => it.Products).WithMany(it => it.Tags).UsingEntity(j => j.ToTable("ProductsTags"));
         }
     }
 }

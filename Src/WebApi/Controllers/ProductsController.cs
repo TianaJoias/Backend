@@ -42,9 +42,9 @@ namespace WebApi.Controllers
         [HttpPost]
         public async Task<IActionResult> PostAsync([FromBody] ProductDTO productDTO)
         {
-            var tags = await _tagRepository.List(it => productDTO.Categories.Contains(it.Id));
+            var tags = await _tagRepository.List(it => productDTO.Tags.Contains(it.Id));
             var product = new Product(productDTO.Sku, productDTO.Description);
-            tags.ForEach(product.AddCategory);
+            tags.ForEach(product.AddTag);
             await _productRepository.Add(product);
             await _unitOfWork.Commit();
             return Ok();
@@ -72,12 +72,12 @@ namespace WebApi.Controllers
         [HttpPut("{id:guid}")]
         public async Task<IActionResult> Put(Guid id, [FromBody] ProductDTO productDTO)
         {
-            var tags = await _tagRepository.List(it => productDTO.Categories.Contains(it.Id));
+            var tags = await _tagRepository.List(it => productDTO.Tags.Contains(it.Id));
             var product = await _productRepository.GetById(id);
             product.SKU = productDTO.Sku;
             product.Description = productDTO.Description;
-            product.RemoveAllCategories();
-            tags.ForEach(product.AddCategory);
+            product.ClearTags();
+            tags.ForEach(product.AddTag);
             await _productRepository.Update(product);
 
             await _unitOfWork.Commit();
@@ -181,7 +181,7 @@ namespace WebApi.Controllers
         public Guid? Id { get; init; }
         public string Sku { get; init; }
         public string Description { get; init; }
-        public IList<Guid> Categories { get; init; }
+        public IList<Guid> Tags { get; init; }
     }
 
     public class ProductDTOValidation : AbstractValidator<ProductDTO>
@@ -190,7 +190,7 @@ namespace WebApi.Controllers
         {
             RuleFor(it => it.Sku).NotEmpty().MinimumLength(5);
             RuleFor(it => it.Description).NotEmpty().MinimumLength(5);
-            RuleFor(it => it.Categories).NotEmpty();
+            RuleFor(it => it.Tags).NotEmpty();
         }
     }
 

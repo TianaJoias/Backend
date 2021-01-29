@@ -10,8 +10,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Infra.EF.Migrations.NPGSQL
 {
     [DbContext(typeof(TianaJoiasContextDB))]
-    [Migration("20210128180714_INITIAL")]
-    partial class INITIAL
+    [Migration("20210129185643_Initial")]
+    partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -207,6 +207,9 @@ namespace Infra.EF.Migrations.NPGSQL
                     b.Property<string>("Name")
                         .HasColumnType("text");
 
+                    b.Property<int>("Type")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
 
                     b.ToTable("Tags");
@@ -245,6 +248,9 @@ namespace Infra.EF.Migrations.NPGSQL
 
                     b.Property<decimal>("CurrentyQuantity")
                         .HasColumnType("numeric");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("EAN")
                         .HasColumnType("text");
@@ -331,17 +337,17 @@ namespace Infra.EF.Migrations.NPGSQL
 
             modelBuilder.Entity("ProductTag", b =>
                 {
-                    b.Property<Guid>("CategoriesId")
-                        .HasColumnType("uuid");
-
                     b.Property<Guid>("ProductsId")
                         .HasColumnType("uuid");
 
-                    b.HasKey("CategoriesId", "ProductsId");
+                    b.Property<Guid>("TagsId")
+                        .HasColumnType("uuid");
 
-                    b.HasIndex("ProductsId");
+                    b.HasKey("ProductsId", "TagsId");
 
-                    b.ToTable("Categories");
+                    b.HasIndex("TagsId");
+
+                    b.ToTable("ProductsTags");
                 });
 
             modelBuilder.Entity("Domain.Account.Account", b =>
@@ -450,15 +456,15 @@ namespace Infra.EF.Migrations.NPGSQL
 
             modelBuilder.Entity("ProductTag", b =>
                 {
-                    b.HasOne("Domain.Portifolio.Tag", null)
-                        .WithMany()
-                        .HasForeignKey("CategoriesId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("Domain.Portifolio.Product", null)
                         .WithMany()
                         .HasForeignKey("ProductsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Portifolio.Tag", null)
+                        .WithMany()
+                        .HasForeignKey("TagsId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

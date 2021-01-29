@@ -48,15 +48,25 @@ namespace Infra.EF
 
         private static async Task AddTags(TianaJoiasContextDB context)
         {
-            var firstTag = new Tag
-            {
-                Name = "firstTag"
+            var tags = new List<Tag> {
+                new Tag("Anel", Tag.TagType.Group),
+                new Tag("Pulseiras", Tag.TagType.Group),
+                new Tag("Brincos", Tag.TagType.Group),
+                new Tag("Infanto", Tag.TagType.Gender),
+                new Tag("Masculino", Tag.TagType.Gender),
+                new Tag("Feminino", Tag.TagType.Gender),
+                new Tag("Unissex", Tag.TagType.Gender),
+                new Tag("Aço", Tag.TagType.Typology),
+                new Tag("Prata", Tag.TagType.Typology),
+                new Tag("Semijoia", Tag.TagType.Typology),
+                new Tag("Pronta", Tag.TagType.Plated),
+                new Tag("Galvanizada", Tag.TagType.Plated),
+                new Tag("Ouro", Tag.TagType.Color),
+                new Tag("Ouro Rose", Tag.TagType.Color),
+                new Tag("Ródio Negro", Tag.TagType.Color),
+                new Tag("Ródio Branco", Tag.TagType.Color),
             };
-            var secondTag = new Tag
-            {
-                Name = "secondTag"
-            };
-            await context.Set<Tag>().AddRangeAsync(firstTag, secondTag);        
+            await context.Set<Tag>().AddRangeAsync(tags);
         }
 
         private static async Task AddAccount(TianaJoiasContextDB context, IPasswordService passwordService, Guid guid)

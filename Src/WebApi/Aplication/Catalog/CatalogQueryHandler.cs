@@ -37,7 +37,7 @@ namespace WebApi.Aplication.Catalog
             if (request.FromDate is not null)
                 baseWhere = baseWhere.And(it => it.CreatedAt >= request.FromDate.Value.Date);
             if (request.ToDate is not null)
-                baseWhere = baseWhere.And(it => it.CreatedAt <= request.ToDate.Value.Date.AddDays(1));
+                baseWhere = baseWhere.And(it => it.CreatedAt <= request.ToDate.Value.AddDays(1).Date.AddSeconds(-1));
             var catalog = await _catalogRepository.GetPaged(baseWhere, request.Page, request.PageSize, request.OrderBy);
             return Result.Ok(catalog.Records.Adapt<IList<CatalogsByAgentQueryResult>>());
         }

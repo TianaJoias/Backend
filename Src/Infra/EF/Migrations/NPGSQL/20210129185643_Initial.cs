@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Infra.EF.Migrations.NPGSQL
 {
-    public partial class INITIAL : Migration
+    public partial class Initial : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -53,6 +53,7 @@ namespace Infra.EF.Migrations.NPGSQL
                     ReservedQuantity = table.Column<decimal>(type: "numeric", nullable: false),
                     Weight = table.Column<decimal>(type: "numeric", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    Date = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     Number = table.Column<string>(type: "text", nullable: true),
                     EAN = table.Column<string>(type: "text", nullable: true)
                 },
@@ -107,7 +108,8 @@ namespace Infra.EF.Migrations.NPGSQL
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Name = table.Column<string>(type: "text", nullable: true)
+                    Name = table.Column<string>(type: "text", nullable: true),
+                    Type = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -159,24 +161,24 @@ namespace Infra.EF.Migrations.NPGSQL
                 });
 
             migrationBuilder.CreateTable(
-                name: "Categories",
+                name: "ProductsTags",
                 columns: table => new
                 {
-                    CategoriesId = table.Column<Guid>(type: "uuid", nullable: false),
-                    ProductsId = table.Column<Guid>(type: "uuid", nullable: false)
+                    ProductsId = table.Column<Guid>(type: "uuid", nullable: false),
+                    TagsId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Categories", x => new { x.CategoriesId, x.ProductsId });
+                    table.PrimaryKey("PK_ProductsTags", x => new { x.ProductsId, x.TagsId });
                     table.ForeignKey(
-                        name: "FK_Categories_Products_ProductsId",
+                        name: "FK_ProductsTags_Products_ProductsId",
                         column: x => x.ProductsId,
                         principalTable: "Products",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Categories_Tags_CategoriesId",
-                        column: x => x.CategoriesId,
+                        name: "FK_ProductsTags_Tags_TagsId",
+                        column: x => x.TagsId,
                         principalTable: "Tags",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -268,11 +270,6 @@ namespace Infra.EF.Migrations.NPGSQL
                 column: "AgentId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Categories_ProductsId",
-                table: "Categories",
-                column: "ProductsId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_IdentityProviders_AccountId",
                 table: "IdentityProviders",
                 column: "AccountId");
@@ -281,6 +278,11 @@ namespace Infra.EF.Migrations.NPGSQL
                 name: "IX_LotSupplier_SuppliersId",
                 table: "LotSupplier",
                 column: "SuppliersId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ProductsTags_TagsId",
+                table: "ProductsTags",
+                column: "TagsId");
 
             migrationBuilder.AddForeignKey(
                 name: "FK_Catalogs_Agents_AgentId",
@@ -301,9 +303,6 @@ namespace Infra.EF.Migrations.NPGSQL
                 name: "CatalogItems");
 
             migrationBuilder.DropTable(
-                name: "Categories");
-
-            migrationBuilder.DropTable(
                 name: "EAN");
 
             migrationBuilder.DropTable(
@@ -313,13 +312,10 @@ namespace Infra.EF.Migrations.NPGSQL
                 name: "LotSupplier");
 
             migrationBuilder.DropTable(
+                name: "ProductsTags");
+
+            migrationBuilder.DropTable(
                 name: "ProductStock");
-
-            migrationBuilder.DropTable(
-                name: "Products");
-
-            migrationBuilder.DropTable(
-                name: "Tags");
 
             migrationBuilder.DropTable(
                 name: "Accounts");
@@ -329,6 +325,12 @@ namespace Infra.EF.Migrations.NPGSQL
 
             migrationBuilder.DropTable(
                 name: "Suppliers");
+
+            migrationBuilder.DropTable(
+                name: "Products");
+
+            migrationBuilder.DropTable(
+                name: "Tags");
 
             migrationBuilder.DropTable(
                 name: "Catalogs");

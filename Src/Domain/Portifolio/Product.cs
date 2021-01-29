@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Domain.Catalog;
 
 namespace Domain.Portifolio
 {
@@ -10,21 +11,23 @@ namespace Domain.Portifolio
         {
             SKU = sku;
             Description = description;
+            CreatedAt = Clock.Now;
             AddEvent(new NewProductEvent(this));
         }
 
         public string Description { get; set; }
-        public IList<Tag> Categories { get; set; } = new List<Tag>();
+        public DateTime CreatedAt { get; }
+        public IList<Tag> Tags { get; set; } = new List<Tag>();
         public string SKU { get; set; }
 
-        public void AddCategory(Tag tag)
+        public void AddTag(Tag tag)
         {
-            Categories.Add(tag);
+            Tags.Add(tag);
         }
 
-        public void RemoveAllCategories()
+        public void ClearTags()
         {
-            Categories.Clear();
+            Tags.Clear();
         }
     }
 

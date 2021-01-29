@@ -79,7 +79,6 @@ namespace WebApi
             {
                 app.UseDeveloperExceptionPage();
             }
-            Console.WriteLine($"ENV - {env.EnvironmentName}");
 
             app.UseHttpsRedirection();
             app.UseCors("mypolicy");
@@ -96,7 +95,7 @@ namespace WebApi
 
             TianaJoiasContextDB.Seeding(dataContext, passwordService).Wait();
             TypeAdapterConfig<Product, ProductQueryResult>.NewConfig()
-                .Map(dest => dest.Categories, src => src.Categories.Select(it => it.Id));
+                .Map(dest => dest.Tags, src => src.Tags.Select(it => it.Id));
         }
     }
 }
