@@ -3,26 +3,28 @@ using Microsoft.AspNetCore.Http;
 using System.Net;
 using System.Threading.Tasks;
 using System.Text.Json;
+using Microsoft.Extensions.Logging;
 
 namespace WebApi.Filters
 {
-    public class ErrorHandlerMiddleware
+    public class ErrorHandlerMiddleware: IMiddleware
     {
-        private readonly RequestDelegate _next;
+        private readonly ILogger<ErrorHandlerMiddleware> _logger;
 
-        public ErrorHandlerMiddleware(RequestDelegate next)
+        public ErrorHandlerMiddleware(ILogger<ErrorHandlerMiddleware> logger)
         {
-            _next = next;
+            _logger = logger;
         }
 
-        public async Task Invoke(HttpContext context)
+        public async Task InvokeAsync(HttpContext context, RequestDelegate next)
         {
             try
             {
-                await _next(context);
+                await next(context);
             }
             catch (Exception error)
             {
+                _logger.LogError(error, "Not handled exception.");
                 var response = context.Response;
                 response.ContentType = "application/json";
                 response.StatusCode = error switch

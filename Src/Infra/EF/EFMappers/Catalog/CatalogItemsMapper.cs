@@ -16,7 +16,7 @@ namespace Infra.EF.EFMappers.Catalog
             builder.Property(it => it.LongDescription);
             builder.Property(it => it.LotId);
             builder.Property(it => it.Price);
-            builder.Property(it => it.ProdutoId);
+            builder.Property(it => it.ProductId);
             builder.Property(it => it.InitialQuantity);
             builder.Property(it => it.CurrentQuantity);
             builder.Property(it => it.ShortDescription);

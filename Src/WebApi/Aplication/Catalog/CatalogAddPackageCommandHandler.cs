@@ -59,7 +59,9 @@ namespace WebApi.Aplication.Catalog
         {
             var lotsIds = request.Items.Select(it => it.LotId).ToList();
             var lotsTask = _lotRepository.List(it => lotsIds.Contains(it.Id));
+            await lotsTask;
             var agentTask = _agentRepository.GetByQuery(it => it.Id == request.AgentId && it.AccountableId == request.AccountableId);
+            await agentTask;
             var catalogTask = _catalogRepository.GetByQuery(it => it.Agent.AccountableId == request.AccountableId && it.Agent.Id == request.AgentId && it.State == States.Preparation);
             await Task.WhenAll(lotsTask, agentTask, catalogTask);
             var lots = await lotsTask;

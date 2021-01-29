@@ -53,9 +53,6 @@ namespace Domain.Catalog
 
             _stateMachine.Configure(States.Closing)
                 .Permit(Trigger.Close, States.Closed);
-
-            _stateMachine.Configure(States.Closed)
-                .OnEntry(() => OnClosed());
         }
 
         public Catalog(Agent channel) : this()
@@ -77,7 +74,7 @@ namespace Domain.Catalog
                 SoldValue += item.ValueSold;
                 SoldQuantity += item.QuantitySold;
                 ItemsQuantity -= quantitySold;
-                AddEvent(new ProductConfirmedSaleEvent(quantitySold, item.LotId, item.ProdutoId, item.Price, Agent.Id));
+                AddEvent(new ProductConfirmedSaleEvent(quantitySold, item.LotId, item.ProductId, item.Price, Agent.Id));
             }
         }
 
@@ -107,7 +104,7 @@ namespace Domain.Catalog
             {
                 item.Return(quantity);
                 ItemsQuantity -= quantity;
-                AddEvent(new ProductReturnedEvent(quantity, LotId, item.ProdutoId, item.Price, Agent.Id));
+                AddEvent(new ProductReturnedEvent(quantity, LotId, item.ProductId, item.Price, Agent.Id));
             }
         }
 
@@ -119,7 +116,10 @@ namespace Domain.Catalog
         public void Close()
         {
             if (_stateMachine.CanFire(Trigger.Close))
+            {
                 _stateMachine.Fire(Trigger.Close);
+                OnClosed();
+            }
         }
         public void ChangeCatalog(Product product, Lot lot, decimal quantity, Catalog catalog)
         {

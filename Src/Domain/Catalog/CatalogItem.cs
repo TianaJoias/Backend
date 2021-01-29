@@ -15,7 +15,7 @@ namespace Domain.Catalog
             LongDescription = product.Description;
             Price = lot.SalePrice;
             ShortDescription = product.Description;
-            ProdutoId = lot.ProductId;
+            ProductId = lot.ProductId;
             LotId = lot.Id;
             CurrentQuantity = quantity;
             InitialQuantity = quantity;
@@ -23,7 +23,7 @@ namespace Domain.Catalog
         }
 
         public Guid LotId { get; private set; }
-        public Guid ProdutoId { get; private set; }
+        public Guid ProductId { get; private set; }
         public decimal InitialQuantity { get; private set; }
         public decimal CurrentQuantity { get; private set; }
         public decimal QuantitySold { get; private set; }

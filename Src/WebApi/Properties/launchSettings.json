@@ -7,7 +7,7 @@
       "sslPort": 0
     },
     "iisExpress": {
-      "applicationUrl": "http://localhost:62233",
+      "applicationUrl": "http://localhost:62233/openapi",
       "sslPort": 44340
     }
   },
@@ -24,7 +24,7 @@
     "WebApi": {
       "commandName": "Project",
       "launchBrowser": true,
-      "launchUrl": "ui/playground",
+      "launchUrl": "openapi",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },

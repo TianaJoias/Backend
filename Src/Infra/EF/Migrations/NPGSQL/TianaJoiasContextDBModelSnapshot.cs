@@ -152,7 +152,7 @@ namespace Infra.EF.Migrations.NPGSQL
                     b.Property<decimal>("Price")
                         .HasColumnType("numeric");
 
-                    b.Property<Guid>("ProdutoId")
+                    b.Property<Guid>("ProductId")
                         .HasColumnType("uuid");
 
                     b.Property<decimal>("QuantitySold")
@@ -243,6 +243,9 @@ namespace Infra.EF.Migrations.NPGSQL
 
                     b.Property<decimal>("CurrentyQuantity")
                         .HasColumnType("numeric");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("EAN")
                         .HasColumnType("text");

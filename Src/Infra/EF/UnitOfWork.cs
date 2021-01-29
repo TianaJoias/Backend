@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Domain;
 using MediatR;
+using Microsoft.Extensions.Logging;
 
 namespace Infra.EF
 {
@@ -10,11 +11,13 @@ namespace Infra.EF
     {
         private readonly TianaJoiasContextDB _context;
         private readonly IMediator _mediator;
+        private readonly ILogger<UnitOfWork> _logger;
 
-        public UnitOfWork(TianaJoiasContextDB context, IMediator mediator)
+        public UnitOfWork(TianaJoiasContextDB context, IMediator mediator, ILogger<UnitOfWork> logger)
         {
             _context = context;
             _mediator = mediator;
+            _logger = logger;
         }
 
         public void Dispose()
@@ -32,8 +35,15 @@ namespace Infra.EF
                 var events = entidades.SelectMany(it => it.Events).ToList();
                 foreach (var entity in entidades)
                     entity.ClearEvents();
-                var tasks = events.Select(it => _mediator.Publish(it)).ToArray();
-                Task.WaitAll(tasks);
+                foreach (var @event in events)
+                    try
+                    {
+                        await _mediator.Publish(@event);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, $"Error on event {nameof(@event)}");
+                    }
                 return true;
             }
             catch (Exception)

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -31,8 +31,12 @@ namespace WebApi.Aplication.Stock
         {
             var suppliers = await _supplierRepository.List(it => request.SuppliersId.Contains(it.Id));
             var product = await _productRepository.GetById(request.ProductId);
-            var lot = new Lot(request.ProductId, request.CostValue, request.SaleValue, request.Quantity, request.Number, suppliers);
-            lot.EAN = await NextEAN();
+            var lot = new Lot(request.ProductId, request.CostValue, request.SaleValue, request.Quantity, request.Number, suppliers)
+            {
+                Weight = request.Weight,
+                Date = request.Date,
+                EAN = await NextEAN()
+            };
             await _lotRepository.Add(lot);
             await _unitOfWork.Commit();
             return Result.Ok();
@@ -80,7 +84,7 @@ namespace WebApi.Aplication.Stock
             return Result.Ok(lotResult);
         }
     }
-    public record LotCreateCommand(Guid ProductId, decimal CostValue, decimal SaleValue, decimal Quantity, string Number, IList<Guid> SuppliersId) : ICommand;
+    public record LotCreateCommand(Guid ProductId, decimal CostValue, decimal SaleValue, decimal Quantity, string Number, IList<Guid> SuppliersId, decimal? Weight, DateTime Date) : ICommand;
 
     public record LotSearchQuery(string ean) : IQuery<LotResult>;
 

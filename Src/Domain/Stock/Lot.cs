@@ -13,9 +13,10 @@ namespace Domain.Stock
         public decimal Quantity { get; private set; }
         public decimal CurrentyQuantity { get; private set; }
         public decimal ReservedQuantity { get; private set; }
-        public decimal? Weight { get; private set; }
+        public decimal? Weight { get; set; }
         public virtual IList<Supplier> Suppliers { get; private set; } = new List<Supplier>();
         public DateTime CreatedAt { get; private set; }
+        public DateTime Date { get; set; }
         public string Number { get; private set; }
         public string EAN { get; set; }
 

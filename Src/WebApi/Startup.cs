@@ -14,6 +14,10 @@ using Infra.EF;
 using OpenTelemetry.Trace;
 using Domain.Account;
 using WebApi.Filters;
+using Mapster;
+using Domain.Portifolio;
+using WebApi.Aplication;
+using System.Linq;
 
 namespace WebApi
 {
@@ -50,6 +54,7 @@ namespace WebApi
             services.AddHttpClient();
             services.AddSqlLite(Configuration);
             services.AddMediatR(typeof(Startup));
+            services.AddScoped<ErrorHandlerMiddleware>();
             services.AddCors(options =>
             {
                 options.AddPolicy("mypolicy",
@@ -88,6 +93,8 @@ namespace WebApi
             app.UseVersionedSwagger(provider);
 
             TianaJoiasContextDB.Seeding(dataContext, passwordService).Wait();
+            TypeAdapterConfig<Product, ProductQueryResult>.NewConfig()
+                .Map(dest => dest.Categories, src => src.Categories.Select(it => it.Id));
         }
     }
 }
