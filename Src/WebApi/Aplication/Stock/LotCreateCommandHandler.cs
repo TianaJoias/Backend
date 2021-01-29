@@ -11,7 +11,8 @@ using Mapster;
 
 namespace WebApi.Aplication.Stock
 {
-    public class LotCreateCommandHandler : ICommandHandler<LotCreateCommand>
+    public class LotCreateCommandHandler : ICommandHandler<LotCreateCommand>,
+        ICommandHandler<LotUpdateCommand>
     {
         private readonly ILotRepository _lotRepository;
         private readonly ISupplierRepository _supplierRepository;
@@ -30,7 +31,6 @@ namespace WebApi.Aplication.Stock
         public async Task<Result> Handle(LotCreateCommand request, CancellationToken cancellationToken)
         {
             var suppliers = await _supplierRepository.List(it => request.SuppliersId.Contains(it.Id));
-            var product = await _productRepository.GetById(request.ProductId);
             var lot = new Lot(request.ProductId, request.CostValue, request.SaleValue, request.Quantity, request.Number, suppliers)
             {
                 Weight = request.Weight,
@@ -41,6 +41,21 @@ namespace WebApi.Aplication.Stock
             await _unitOfWork.Commit();
             return Result.Ok();
         }
+
+        public async Task<Result> Handle(LotUpdateCommand request, CancellationToken cancellationToken)
+        {
+            var suppliers = await _supplierRepository.List(it => request.SuppliersId.Contains(it.Id));
+            var lot = await _lotRepository.GetById(request.Id);
+            lot.Weight = request.Weight;
+            lot.Date = request.Date;
+            lot.Number = request.Number;
+            lot.Suppliers.Clear();
+            suppliers.ForEach(lot.Suppliers.Add);
+            await _lotRepository.Update(lot);
+            await _unitOfWork.Commit();
+            return Result.Ok();
+        }
+
         private async Task<string> NextEAN()
         {
             var EAN = await _iEANRepository.GetByQuery(it => it.IsActive);
@@ -85,6 +100,8 @@ namespace WebApi.Aplication.Stock
         }
     }
     public record LotCreateCommand(Guid ProductId, decimal CostValue, decimal SaleValue, decimal Quantity, string Number, IList<Guid> SuppliersId, decimal? Weight, DateTime Date) : ICommand;
+
+    public record LotUpdateCommand(Guid Id, Guid ProductId, decimal CostValue, decimal SaleValue, decimal Quantity, string Number, IList<Guid> SuppliersId, decimal? Weight, DateTime Date) : ICommand;
 
     public record LotSearchQuery(string ean) : IQuery<LotResult>;
 

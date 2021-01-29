@@ -17,7 +17,7 @@ namespace Domain.Stock
         public virtual IList<Supplier> Suppliers { get; private set; } = new List<Supplier>();
         public DateTime CreatedAt { get; private set; }
         public DateTime Date { get; set; }
-        public string Number { get; private set; }
+        public string Number { get; set; }
         public string EAN { get; set; }
 
         protected Lot()

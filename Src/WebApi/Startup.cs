@@ -18,6 +18,7 @@ using Mapster;
 using Domain.Portifolio;
 using WebApi.Aplication;
 using System.Linq;
+using System;
 
 namespace WebApi
 {
@@ -78,6 +79,7 @@ namespace WebApi
             {
                 app.UseDeveloperExceptionPage();
             }
+            Console.WriteLine($"ENV - {env.EnvironmentName}");
 
             app.UseHttpsRedirection();
             app.UseCors("mypolicy");

@@ -100,9 +100,9 @@ namespace WebApi.Controllers
         [HttpPut("{productId:guid}/lots/{lotId:guid}")]
         public async Task<IActionResult> UpdateLot(Guid productId, Guid lotId, [FromBody] LotRequest lot)
         {
-            //var command = new LotCreateCommand(productId, lot.CostPrice, lot.SalePrice, lot.Quantity, lot.Number, lot.Suppliers, lot.Weight, lot.Date);
-            //var result = await _mediator.Send(command);
-            return Ok();
+            var command = new LotUpdateCommand(lotId, productId, lot.CostPrice, lot.SalePrice, lot.Quantity, lot.Number, lot.Suppliers, lot.Weight, lot.Date);
+            var result = await _mediator.Send(command);
+            return result.ToActionResult();
         }
 
         [HttpPost("{id:guid}/lots")]
