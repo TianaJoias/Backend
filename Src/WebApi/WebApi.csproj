@@ -54,6 +54,7 @@
 
   <ItemGroup>
     <Folder Include="Aplication\Portifolio\" />
+    <Folder Include="Aplication\Stock\Commands\" />
   </ItemGroup>
 
 

@@ -13,6 +13,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using WebApi.Aplication;
 using WebApi.Aplication.Stock;
+using WebApi.Aplication.Stock.Queries.ProductSuppliers;
 using WebApi.Security;
 
 namespace WebApi.Controllers
@@ -110,6 +111,15 @@ namespace WebApi.Controllers
         {
             var command = new LotCreateCommand(lot.ProductId, lot.CostPrice, lot.SalePrice, lot.Quantity, lot.Number, lot.Suppliers, lot.Weight, lot.Date);
             var result = await _mediator.Send(command);
+            return result.ToActionResult();
+        }
+
+
+        [HttpGet("{productId:guid}/suppliers")]
+        public async Task<IActionResult> SuppliersGet(Guid productId)
+        {
+            var query = new ProductSupplierQuery { ProductId = productId };
+            var result = await _mediator.Send(query);
             return result.ToActionResult();
         }
 

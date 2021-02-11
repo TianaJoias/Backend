@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+
+    <LangVersion>preview</LangVersion>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BCrypt.Net-Next" Version="4.0.2" />
+    <PackageReference Include="MediatR" Version="9.0.0" />
+    <PackageReference Include="FluentResults" Version="2.3.0" />
+    <PackageReference Include="Stateless" Version="5.1.8" />
+  </ItemGroup>
+
+</Project>

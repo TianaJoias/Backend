@@ -7,19 +7,3 @@ services:
     build:
       context: .
       dockerfile: Src/WebApi/Dockerfile
-  postgres:
-    container_name: postgress
-    image: postgres:13-alpine
-    environment:
-      - POSTGRES_USER=admin
-      - POSTGRES_PASSWORD=mysecretpassword
-    ports:
-      - 5432:5432     
-  admin:
-    container_name: pgadmin
-    image: dpage/pgadmin4
-    environment:
-      PGADMIN_DEFAULT_EMAIL: "wladioh@gmail.com"
-      PGADMIN_DEFAULT_PASSWORD: "PgAdmin2021!"
-    ports:
-      - 16543:80

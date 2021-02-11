@@ -1,16 +1,15 @@
-<Project Sdk="Microsoft.NET.Sdk">
-
+<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
   <PropertyGroup>
-
     <LangVersion>preview</LangVersion>
     <TargetFramework>net5.0</TargetFramework>
+    <FileUpgradeFlags>40</FileUpgradeFlags>
+    <UpgradeBackupLocation>D:\Projetos\Tiana\Backend\Backup\Src\Domain\</UpgradeBackupLocation>
+    <OldToolsVersion>2.0</OldToolsVersion>
   </PropertyGroup>
-
   <ItemGroup>
     <PackageReference Include="BCrypt.Net-Next" Version="4.0.2" />
     <PackageReference Include="MediatR" Version="9.0.0" />
     <PackageReference Include="FluentResults" Version="2.3.0" />
     <PackageReference Include="Stateless" Version="5.1.8" />
   </ItemGroup>
-
 </Project>

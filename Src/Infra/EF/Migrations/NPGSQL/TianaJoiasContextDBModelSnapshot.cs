@@ -318,6 +318,31 @@ namespace Infra.EF.Migrations.NPGSQL
                     b.ToTable("Suppliers");
                 });
 
+            modelBuilder.Entity("Domain.Stock.SupplierProduct", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("Id");
+
+                    b.Property<string>("Code")
+                        .HasColumnType("text");
+
+                    b.Property<Guid?>("ProductId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("SupplierId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductId");
+
+                    b.HasIndex("SupplierId");
+
+                    b.ToTable("SupplierProduct");
+                });
+
             modelBuilder.Entity("LotSupplier", b =>
                 {
                     b.Property<Guid>("LotsId")
@@ -437,6 +462,21 @@ namespace Infra.EF.Migrations.NPGSQL
                         .HasConstraintName("FK_CATALOG_ITEM");
                 });
 
+            modelBuilder.Entity("Domain.Stock.SupplierProduct", b =>
+                {
+                    b.HasOne("Domain.Stock.ProductStock", "Product")
+                        .WithMany("Suppliers")
+                        .HasForeignKey("ProductId");
+
+                    b.HasOne("Domain.Stock.Supplier", "Supplier")
+                        .WithMany()
+                        .HasForeignKey("SupplierId");
+
+                    b.Navigation("Product");
+
+                    b.Navigation("Supplier");
+                });
+
             modelBuilder.Entity("LotSupplier", b =>
                 {
                     b.HasOne("Domain.Stock.Lot", null)
@@ -475,6 +515,11 @@ namespace Infra.EF.Migrations.NPGSQL
             modelBuilder.Entity("Domain.Catalog.Catalog", b =>
                 {
                     b.Navigation("Items");
+                });
+
+            modelBuilder.Entity("Domain.Stock.ProductStock", b =>
+                {
+                    b.Navigation("Suppliers");
                 });
 #pragma warning restore 612, 618
         }
