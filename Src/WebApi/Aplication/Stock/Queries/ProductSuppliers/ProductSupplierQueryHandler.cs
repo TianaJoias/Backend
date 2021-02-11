@@ -7,7 +7,7 @@ using Mapster;
 
 namespace WebApi.Aplication.Stock.Queries.ProductSuppliers
 {
-    public class ProductSupplierQueryHandler : IQueryHandler<ProductSupplierQuery, IList<ProductSupplierResult>>
+    public class ProductSupplierQueryHandler : IQueryHandler<ProductSupplierQuery, PagedData<ProductSupplierResult>>
     {
         private readonly ISupplierProductRepository _supplierProductRepository;
 
@@ -16,10 +16,10 @@ namespace WebApi.Aplication.Stock.Queries.ProductSuppliers
             _supplierProductRepository = supplierProductRepository;
         }
 
-        public async Task<Result<IList<ProductSupplierResult>>> Handle(ProductSupplierQuery request, CancellationToken cancellationToken)
+        public async Task<Result<PagedData<ProductSupplierResult>>> Handle(ProductSupplierQuery request, CancellationToken cancellationToken)
         {
-            var suppliers = await _supplierProductRepository.List(it => it.Product.Id == request.ProductId);
-            return Result.Ok(suppliers.Adapt<IList<ProductSupplierResult>>());
+            var suppliers = await _supplierProductRepository.GetPaged(it => it.Product.Id == request.ProductId, request.Page, request.PageSize, request.OrderBy);
+            return Result.Ok(suppliers.Adapt<PagedData<ProductSupplierResult>>());
         }
     }
 }

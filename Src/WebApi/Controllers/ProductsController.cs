@@ -121,9 +121,10 @@ namespace WebApi.Controllers
 
 
         [HttpGet("{productId:guid}/suppliers")]
-        public async Task<IActionResult> SuppliersGet(Guid productId)
+        public async Task<IActionResult> SuppliersGet(Guid productId, [FromQuery] FilterPaged filter)
         {
-            var query = new ProductSupplierQuery { ProductId = productId };
+            var query = filter.Adapt<ProductSupplierQuery>();
+            query.ProductId = productId;
             var result = await _mediator.Send(query);
             return result.ToActionResult();
         }

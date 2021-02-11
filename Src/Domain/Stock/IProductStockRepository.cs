@@ -5,7 +5,7 @@ namespace Domain.Stock
     {
     }
 
-    public interface ISupplierProductRepository : IRepository<SupplierProduct>
+    public interface ISupplierProductRepository : IRepository<SupplierProduct>, IRepositoryPagination<SupplierProduct>
     {
     }
 }
