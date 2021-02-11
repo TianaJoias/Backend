@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Domain;
 using Mapster;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using WebApi.Aplication;
-using WebApi.Aplication.Catalog;
+using WebApi.Aplication.Catalog.Commands;
+using WebApi.Aplication.Catalog.Queries;
 using static Domain.Catalog.Catalog;
 
 namespace WebApi.Controllers
@@ -23,7 +23,7 @@ namespace WebApi.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Get([FromQuery] PaginateRequest request)
+        public async Task<IActionResult> Get([FromQuery] FilterPaged request)
         {
             var query = request.Adapt<AgentsQuery>();
             query.AccountableId = User.GetId();
@@ -126,7 +126,7 @@ namespace WebApi.Controllers
         }
     }
 
-    public record CatalogQueryString : PaginationQuery
+    public class CatalogQueryString : FilterPaged
     {
         public DateTime? FromDate { get; set; }
         public DateTime? ToDate { get; set; }
@@ -151,13 +151,6 @@ namespace WebApi.Controllers
         public bool Done { get; set; }
     }
 
-    public record PaginateRequest
-    {
-        public string SearchTerm { get; init; }
-        public int Page { get; init; } = 1;
-        public int PageSize { get; init; } = 5;
-        public Dictionary<string, Sort> OrderBy { get; init; } = null;
-    }
 
     public record AgentRequest
     {

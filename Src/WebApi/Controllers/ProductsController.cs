@@ -12,7 +12,8 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using WebApi.Aplication;
-using WebApi.Aplication.Stock;
+using WebApi.Aplication.Stock.Commands;
+using WebApi.Aplication.Stock.Queries;
 using WebApi.Aplication.Stock.Queries.ProductSuppliers;
 using WebApi.Security;
 
@@ -67,7 +68,7 @@ namespace WebApi.Controllers
         public async Task<IActionResult> GetById(Guid id)
         {
             var productsPage = await _mediator.Send(new ProductQueryById(id));
-            return Ok(productsPage.ValueOrDefault);
+            return productsPage.ToActionResult();
         }
 
         [HttpPut("{id:guid}")]
@@ -86,10 +87,14 @@ namespace WebApi.Controllers
         }
 
         [HttpGet("{productId:guid}/lots")]
-        public async Task<IActionResult> LotsGet(Guid productId)
+        public async Task<IActionResult> LotsGet(Guid productId, [FromQuery] FilterPaged query)
         {
-            var lots = await _lotsRepository.List(it => it.ProductId == productId);
-            return Ok(lots.Adapt<IList<LotResponse>>());
+            //var lots = await _lotsRepository.List(it => it.ProductId == productId);
+            //return Ok(lots.Adapt<IList<LotResponse>>());
+            var command = query.Adapt<LotsByProductIdQuery>();
+            command.ProductId = productId;
+            var result = await _mediator.Send(command);
+            return result.ToActionResult();
         }
 
         [HttpGet("{productId:guid}/lots/{lotId:guid}")]

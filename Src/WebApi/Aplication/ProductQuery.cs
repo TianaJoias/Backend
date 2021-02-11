@@ -1,7 +1,7 @@
 ﻿namespace WebApi.Aplication
 {
-    public record ProductQuery : PaginationQuery, IQuery<QueryPagedResult<ProductQueryResult>>
+    public class ProductQuery : FilterPagedQuery<PagedData<ProductQueryResult>>
     {
-
+        public string SearchTerm { get; set; }
     }
 }

@@ -9,7 +9,7 @@ namespace WebApi.Aplication
 {
     public static class OrderByHelper
     {
-        public static Func<IQueryable<T>, IOrderedQueryable<T>> BuildOrderBy<T>(this PaginationQuery request, Expression<Func<T, object>> defaultOrdeBy)
+        public static Func<IQueryable<T>, IOrderedQueryable<T>> BuildOrderBy<T>(this FilterPaged request, Expression<Func<T, object>> defaultOrdeBy)
         {
             return (IQueryable<T> query) =>
             {

@@ -11,7 +11,7 @@ using Mapster;
 
 namespace WebApi.Aplication
 {
-    public class ProductsQueryHandler : IQueryHandler<ProductQuery, QueryPagedResult<ProductQueryResult>>,
+    public class ProductsQueryHandler : IQueryHandler<ProductQuery, PagedData<ProductQueryResult>>,
         IQueryHandler<ProductQueryById, ProductQueryResult>
     {
         private readonly IProductRepository _productRepository;
@@ -23,7 +23,7 @@ namespace WebApi.Aplication
             _productStock = productStock;
         }
 
-        public async Task<Result<QueryPagedResult<ProductQueryResult>>> Handle(ProductQuery request, CancellationToken cancellationToken)
+        public async Task<Result<PagedData<ProductQueryResult>>> Handle(ProductQuery request, CancellationToken cancellationToken)
         {
             Expression<Func<Product, bool>> query = it => it.Description.Contains(request.SearchTerm) || it.SKU.Contains(request.SearchTerm) || it.Tags.Any(x => x.Name.Contains(request.SearchTerm));
             if (string.IsNullOrWhiteSpace(request.SearchTerm))
@@ -31,9 +31,9 @@ namespace WebApi.Aplication
             var result = await _productRepository.GetPaged(query, request.Page, request.PageSize,
                 request.OrderBy);
 
-            var ids = result.Records.Select(it => it.Id);
+            var ids = result.Data.Select(it => it.Id);
             var stocks = await _productStock.List(it => ids.Contains(it.ProductId));
-            var records = result.Records.Join(stocks, it => it.Id, it => it.ProductId, (p, s) => new
+            var records = result.Data.Join(stocks, it => it.Id, it => it.ProductId, (p, s) => new
             {
                 p.Id,
                 p.SKU,
@@ -42,7 +42,7 @@ namespace WebApi.Aplication
                 s.Quantity,
                 s.ReservedQuantity
             }).ToList();
-            var rest = result.Records.Where(it => !records.Any(r => r.Id == it.Id)).Select(p => new
+            var rest = result.Data.Where(it => !records.Any(r => r.Id == it.Id)).Select(p => new
             {
                 p.Id,
                 p.SKU,
@@ -54,7 +54,7 @@ namespace WebApi.Aplication
             records.AddRange(rest);
             var records22 = records.Adapt<IList<ProductQueryResult>>();
 
-            var dto = new QueryPagedResult<ProductQueryResult>(result.CurrentPage, result.PageCount, result.PageSize, result.RowCount, Records: records22);
+            var dto = new PagedData<ProductQueryResult>(result.CurrentPage, result.TotalPages, result.TotalRows, records22);
             return Result.Ok(dto);
         }
 
@@ -66,8 +66,6 @@ namespace WebApi.Aplication
         }
     }
 
-
-    public record QueryPagedResult<T>(int CurrentPage, int PageCount, int PageSize, int RowCount, IList<T> Records) : IQuery<T>;
 
     public record ProductQueryById(Guid Id) : IQuery<ProductQueryResult>;
 

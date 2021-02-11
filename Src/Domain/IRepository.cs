@@ -23,5 +23,5 @@ namespace Domain
     }
 
     public enum Sort { Asc, Desc }
-    public record PagedResult<T>(int CurrentPage, int PageCount, int PageSize, int RowCount, IList<T> Records);
+    public record PagedResult<T>(int CurrentPage, int TotalPages, int PageSize, int TotalRows, IList<T> Data);
 }
