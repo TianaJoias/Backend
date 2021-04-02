@@ -52,8 +52,7 @@ namespace WebApi
                  .SetResourceBuilder(
                       ResourceBuilder.CreateDefault().AddService("BackofficeApi"))
                   .AddAspNetCoreInstrumentation()
-                  .AddJaegerExporter()
-                  .AddConsoleExporter();
+                  .AddJaegerExporter();
                 });
             services.AddSwagger();
             services.AddSecurity();
