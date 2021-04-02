@@ -19,6 +19,7 @@ using Domain.Portifolio;
 using WebApi.Aplication;
 using System.Linq;
 using System;
+using WebApi.Controllers;
 
 namespace WebApi
 {
@@ -46,8 +47,9 @@ namespace WebApi
                     });
             services.AddOpenTelemetryTracing((builder) => builder
                 .AddAspNetCoreInstrumentation()
-                .AddHttpClientInstrumentation()
+                .AddHttpClientInstrumentation()                
                 .AddConsoleExporter());
+            
             services.AddSwagger();
             services.AddSecurity();
             services.AddOptions(Configuration);
@@ -56,6 +58,7 @@ namespace WebApi
             services.AddSqlLite(Configuration);
             services.AddMediatR(typeof(Startup));
             services.AddScoped<ErrorHandlerMiddleware>();
+            services.AddSingleton<IFileBatchLotParser, BatchLotParser>();
             services.AddCors(options =>
             {
                 options.AddPolicy("mypolicy",
@@ -99,4 +102,3 @@ namespace WebApi
         }
     }
 }
-

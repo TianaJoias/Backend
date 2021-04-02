@@ -1,14 +1,22 @@
-﻿using Domain;
+﻿using CsvHelper;
+using CsvHelper.Configuration;
+using CsvHelper.TypeConversion;
+using Domain;
 using Domain.Account;
 using Domain.Portifolio;
 using Domain.Stock;
+using FluentResults;
 using FluentValidation;
 using Mapster;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
+using System.IO;
+using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using WebApi.Aplication;
@@ -19,6 +27,44 @@ using WebApi.Security;
 
 namespace WebApi.Controllers
 {
+    public interface IFileBatchLotParser
+    {
+        Task<List<Result<BatchLotCreateItemCommand>>> Parser(Stream file);
+    }
+    public class BatchLotParser : IFileBatchLotParser
+    {
+        public Task<List<Result<BatchLotCreateItemCommand>>> Parser(Stream file)
+        {
+            using var reader = new StreamReader(file);
+            using var csv = new CsvReader(reader, CultureInfo.InvariantCulture);
+            csv.Context.TypeConverterCache.AddConverter<DateTime>(new Teste());
+            csv.Context.RegisterClassMap<FooMap>();
+            var items = ReadItems(csv).ToList();
+            return Task.FromResult(items);
+        }
+        private static IEnumerable<Result<BatchLotCreateItemCommand>> ReadItems(CsvReader csv)
+        {
+            var count = 1;
+            while (csv.Read())
+            {
+                BatchLotCreateItemCommand record = null;
+                FieldValidationException error = null;
+                try
+                {
+                    count++;
+                    record = csv.GetRecord<BatchLotCreateItemCommand>();
+                }
+                catch (FieldValidationException ex)
+                {
+                    error = ex;
+                }
+                if (record is null)
+                    yield return Result.Fail(error.Field);
+                else
+                    yield return Result.Ok(record);
+            }
+        }
+    }
     [Route("v{version:apiVersion}/[controller]")]
     [ApiController]
     [AuthorizeEnum(Roles.ADMIN)]
@@ -30,9 +76,11 @@ namespace WebApi.Controllers
         private readonly IMediator _mediator;
         private readonly ISupplierRepository _supplierRepository;
         private readonly ITagRepository _tagRepository;
+        private readonly IFileBatchLotParser _fileBatchLotParser;
 
         public ProductsController(
-            IProductRepository productRepository, IUnitOfWork unitOfWork, ILotRepository batchRepository, IMediator mediator, ISupplierRepository supplierRepository, ITagRepository tagRepository)
+            IProductRepository productRepository, IUnitOfWork unitOfWork, ILotRepository batchRepository, IMediator mediator, ISupplierRepository supplierRepository,
+            ITagRepository tagRepository, IFileBatchLotParser fileBatchLotParser)
         {
             _productRepository = productRepository;
             _unitOfWork = unitOfWork;
@@ -40,6 +88,7 @@ namespace WebApi.Controllers
             _mediator = mediator;
             _supplierRepository = supplierRepository;
             _tagRepository = tagRepository;
+            _fileBatchLotParser = fileBatchLotParser;
         }
         [HttpPost]
         public async Task<IActionResult> PostAsync([FromBody] ProductDTO productDTO)
@@ -89,8 +138,6 @@ namespace WebApi.Controllers
         [HttpGet("{productId:guid}/lots")]
         public async Task<IActionResult> LotsGet(Guid productId, [FromQuery] FilterPaged query)
         {
-            //var lots = await _lotsRepository.List(it => it.ProductId == productId);
-            //return Ok(lots.Adapt<IList<LotResponse>>());
             var command = query.Adapt<LotsByProductIdQuery>();
             command.ProductId = productId;
             var result = await _mediator.Send(command);
@@ -119,6 +166,15 @@ namespace WebApi.Controllers
             return result.ToActionResult();
         }
 
+        [HttpPost("lots/batch")]
+        public async Task<IActionResult> OnPostUploadAsync([FromForm] IFormFile file)
+        {
+            var items = await _fileBatchLotParser.Parser(file.OpenReadStream());
+            var validItems = items.Where(it => it.IsSuccess).Select(it => it.Value);
+            var command = new BatchLotCreateCommand(validItems.ToList());
+            var result = await _mediator.Send(command);
+            return Ok();
+        }
 
         [HttpGet("{productId:guid}/suppliers")]
         public async Task<IActionResult> SuppliersGet(Guid productId, [FromQuery] FilterPaged filter)
@@ -126,6 +182,14 @@ namespace WebApi.Controllers
             var query = filter.Adapt<ProductSupplierQuery>();
             query.ProductId = productId;
             var result = await _mediator.Send(query);
+            return result.ToActionResult();
+        }
+
+        [HttpPost("{productId:guid}/suppliers")]
+        public async Task<IActionResult> SuppliersPost(Guid productId, [FromBody] ProductSupplierRequest request)
+        {
+            var command = new ProductSupplierCommand(productId, request.SupplierId, request.Code);
+            var result = await _mediator.Send(command);
             return result.ToActionResult();
         }
 
@@ -159,6 +223,34 @@ namespace WebApi.Controllers
         {
             var tags = await _tagRepository.List();
             return Ok(tags);
+        }
+    }
+
+
+    public class Teste : ITypeConverter
+    {
+        public object ConvertFromString(string text, IReaderRow row, MemberMapData memberMapData)
+        {
+            return DateTime.ParseExact(text, "dd/MM/yyyy", CultureInfo.InvariantCulture);
+        }
+
+        public string ConvertToString(object value, IWriterRow row, MemberMapData memberMapData)
+        {
+            return ((DateTime)value).ToString("dd/MM/yyyy");
+        }
+    }
+    public class FooMap : ClassMap<BatchLotCreateItemCommand>
+    {
+        public FooMap()
+        {
+            Map(m => m.SuppliersId).Name("Codigo Fornecedor");
+            Map(m => m.ProductCode).Name("Codigo Produto");
+            Map(m => m.SaleValue).Name("Valor de Venda");
+            Map(m => m.CostValue).Name("Valor de Custo");
+            Map(m => m.Quantity).Name("Quantidade");
+            Map(m => m.Weight).Name("Peso");
+            Map(m => m.Number).Name("Numero Lote");
+            Map(m => m.Date).Name("Data Lote").Validate(field => DateTime.TryParse(field.Field, out _));
         }
     }
 
@@ -209,7 +301,11 @@ namespace WebApi.Controllers
             RuleFor(it => it.Tags).NotEmpty();
         }
     }
-
+    public record ProductSupplierRequest
+    {
+        public string Code { get; set; }
+        public Guid SupplierId { get; set; }
+    }
     public record LotResponse
     {
         public Guid Id { get; init; }

@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Infra.EF.Migrations.NPGSQL
 {
-    public partial class Initial : Migration
+    public partial class INITAL : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -80,7 +80,6 @@ namespace Infra.EF.Migrations.NPGSQL
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    ProductId = table.Column<Guid>(type: "uuid", nullable: false),
                     Quantity = table.Column<decimal>(type: "numeric", nullable: false),
                     ReservedQuantity = table.Column<decimal>(type: "numeric", nullable: false),
                     TotalWithdrawal = table.Column<decimal>(type: "numeric", nullable: false)
@@ -158,6 +157,32 @@ namespace Infra.EF.Migrations.NPGSQL
                         principalTable: "Suppliers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "SupplierProduct",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    SupplierId = table.Column<Guid>(type: "uuid", nullable: true),
+                    Code = table.Column<string>(type: "text", nullable: true),
+                    ProductId = table.Column<Guid>(type: "uuid", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SupplierProduct", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_SupplierProduct_ProductStock_ProductId",
+                        column: x => x.ProductId,
+                        principalTable: "ProductStock",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_SupplierProduct_Suppliers_SupplierId",
+                        column: x => x.SupplierId,
+                        principalTable: "Suppliers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -284,6 +309,16 @@ namespace Infra.EF.Migrations.NPGSQL
                 table: "ProductsTags",
                 column: "TagsId");
 
+            migrationBuilder.CreateIndex(
+                name: "IX_SupplierProduct_ProductId",
+                table: "SupplierProduct",
+                column: "ProductId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SupplierProduct_SupplierId",
+                table: "SupplierProduct",
+                column: "SupplierId");
+
             migrationBuilder.AddForeignKey(
                 name: "FK_Catalogs_Agents_AgentId",
                 table: "Catalogs",
@@ -315,7 +350,7 @@ namespace Infra.EF.Migrations.NPGSQL
                 name: "ProductsTags");
 
             migrationBuilder.DropTable(
-                name: "ProductStock");
+                name: "SupplierProduct");
 
             migrationBuilder.DropTable(
                 name: "Accounts");
@@ -324,13 +359,16 @@ namespace Infra.EF.Migrations.NPGSQL
                 name: "Lots");
 
             migrationBuilder.DropTable(
-                name: "Suppliers");
-
-            migrationBuilder.DropTable(
                 name: "Products");
 
             migrationBuilder.DropTable(
                 name: "Tags");
+
+            migrationBuilder.DropTable(
+                name: "ProductStock");
+
+            migrationBuilder.DropTable(
+                name: "Suppliers");
 
             migrationBuilder.DropTable(
                 name: "Catalogs");
