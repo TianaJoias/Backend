@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backoffice-api-v1
+  labels:
+    app: backoffice-api
+    version: v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backoffice-api
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: backoffice-api
+        version: v1
+    spec:
+      imagePullSecrets:
+        - name: azure-acr    
+      containers:
+        - name: backoffice-api
+          image: tianajoias.azurecr.io/tianajoiasapi:${IMAGE_TAG}
+          imagePullPolicy: Always
+          resources:
+            limits:
+              cpu: 100m
+              memory: 250Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi
+          # terminationGracePeriodSeconds: 30
+          ports:
+            - name: http-port
+              containerPort: 80
+          # livenessProbe:
+          #   httpGet:
+          #     path: /live
+          #     port: management-port
+          #   initialDelaySeconds: 5
+          #   periodSeconds: 5    
+          #   failureThreshold: 6          
+          # readinessProbe:
+          #   httpGet:
+          #     path: /ready
+          #     port: management-port
+          #   initialDelaySeconds: 2
+          #   timeoutSeconds: 2
+          #   periodSeconds: 5
+          #   failureThreshold: 6
+          envFrom:
+            - configMapRef:
+                name: backoffice-api
+                optional: true

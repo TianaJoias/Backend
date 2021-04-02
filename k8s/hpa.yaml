@@ -1,0 +1,39 @@
+# apiVersion: autoscaling/v1
+# kind: HorizontalPodAutoscaler
+# metadata:
+#   annotations:
+#     name: backoffice-api
+#     namespace: default
+# spec:
+#   maxReplicas: 5
+#   minReplicas: 1
+#   scaleTargetRef:
+#     apiVersion: extensions/v1
+#     kind: Deployment
+#     name: backoffice-api
+#   targetCPUUtilizationPercentage: 1
+
+# apiVersion: autoscaling/v2beta2
+# kind: HorizontalPodAutoscaler
+# metadata:
+#   labels:
+#     app: backoffice-api
+#     version: v1
+# spec:
+#   scaleTargetRef:
+#     apiVersion: apps/v1
+#     kind: Deployment
+#     name: backoffice-api
+#   minReplicas: 1
+#   maxReplicas: 10
+#   metrics:
+#   - type: Resource
+#     resource:
+#       name: cpu
+#       target:
+#         type: Utilization
+#         averageUtilization: 70
+#   - type: Resource
+#     resource:
+#       name: memory
+#       targetAverageValue: 230Mi

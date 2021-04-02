@@ -1,0 +1,9 @@
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backoffice-api
+data:
+  # property-like keys; each key maps to a simple value
+  ASPNETCORE_ENVIRONMENT: "Production"
+  ConnectionStrings__NPGSQL: ${CONNECTION_STRING}

@@ -9,7 +9,8 @@ on:
   #     - master\
 env:
   AZURE_WEBAPP_NAME: tianajoiasapi # set this to your application's name
-  IMAGE_NAME_TAG:  ${{ secrets.CONTAINER_REGISTRY }}/tianajoiasapi:${{ github.run_id }}.${{ github.run_number }}
+  IMAGE_TAG: ${{ github.run_id }}.${{ github.run_number }}
+  IMAGE_NAME_TAG: ${{ secrets.CONTAINER_REGISTRY }}/tianajoiasapi:${{ env.IMAGE_TAG }}
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -26,16 +27,45 @@ jobs:
           login-server: ${{ secrets.CONTAINER_REGISTRY }}
           username: ${{ secrets.REGISTRY_USERNAME }}
           password: ${{ secrets.REGISTRY_PASSWORD }}
-      # docker build . -t ${{ env.IMAGE_NAME_TAG }}
       - run: |
           docker build -t ${{ env.IMAGE_NAME_TAG }} --label "git-commit=${{ github.sha }}" --label "sourcebranch=${{ github.ref }}" -f Src/WebApi/Dockerfile .  
           docker push ${{ env.IMAGE_NAME_TAG }}
-  deploy:  
+      - uses: cschleiden/replace-tokens@v1
+        with:
+          files: '["k8s/**/*.yaml"]'
+        env:
+          IMAGE_TAG: ${{ env.IMAGE_TAG }}
+      - name: K8s Artifactis
+        uses: actions/upload-artifact@v2
+        with:
+          name: k8s
+          path: |
+            k8s/**/*.yaml          
+  deploy:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - uses: azure/webapps-deploy@v2
+      - uses: actions/download-artifact@v2
         with:
-          app-name: ${{ env.AZURE_WEBAPP_NAME }}
-          publish-profile: ${{ secrets.API_WEBAPP_PUBLISH_PROFILE }}
-          images: '${{ env.IMAGE_NAME_TAG }}'
+          name: k8s
+          path: manifests/artifact   
+      - uses: cschleiden/replace-tokens@v1
+        with:
+          files: '["manifests/artifact/**/*.yaml"]'
+        env:
+          IMAGE_TAG: ${{ secrets.CONNECTION_STRING }}
+      - uses: Azure/aks-set-context@v1
+        with:
+          creds: '${{ secrets.AZURE_CREDENTIALS }}'
+          cluster-name: contoso
+          resource-group: contoso-rg                        
+      - uses: azure/k8s-deploy@v1
+        with:
+          manifests: |
+            manifests/deployment.yml
+            manifests/service.yml
+          images: |
+            ${{ env.REGISTRY_NAME }}.azurecr.io/${{ env.APP_NAME }}:${{ github.sha }}
+          imagepullsecrets: |
+            ${{ env.SECRET }}
+          namespace: ${{ env.NAMESPACE }}
