@@ -25,7 +25,7 @@ namespace WebApi.Aplication.Stock
             var lot = await _lotRepository.GetById(notification.LotId);
             lot.ConfirmSale(notification.Quantity);
             await _lotRepository.Update(lot);
-            var product = await _productStockRepository.GetByQuery(it=> it.ProductId == notification.ProdutoId);
+            var product = await _productStockRepository.GetById(notification.ProdutoId);
             product.ConfirmSale(notification.Quantity);
             await _productStockRepository.Update(product);
             await _unitOfWork.Commit();
@@ -48,7 +48,7 @@ namespace WebApi.Aplication.Stock
             var lot = await _lotRepository.GetById(notification.LotId);
             lot.Return(notification.Quantity);
             await _lotRepository.Update(lot);
-            var product = await _productStockRepository.GetByQuery(it => it.ProductId == notification.ProdutoId);
+            var product = await _productStockRepository.GetById(notification.ProdutoId);
             product.Return(notification.Quantity);
             await _productStockRepository.Update(product);
             await _unitOfWork.Commit();
@@ -71,7 +71,7 @@ namespace WebApi.Aplication.Stock
             var lot = await _lotRepository.GetById(notification.LotId);
             lot.Reserve(notification.Quantity);
             await _lotRepository.Update(lot);
-            var product = await _productStockRepository.GetByQuery(it=> it.ProductId ==  notification.ProdutoId);
+            var product = await _productStockRepository.GetById(notification.ProdutoId);
             product.Reserve(notification.Quantity);
             await _productStockRepository.Update(product);
             await _unitOfWork.Commit();
@@ -105,7 +105,7 @@ namespace WebApi.Aplication.Stock
         }
         public async Task Handle(NewLotEvent notification, CancellationToken cancellationToken)
         {
-            var product = await _productStockRepository.GetByQuery(it=> it.ProductId == notification.ProductId);
+            var product = await _productStockRepository.GetById(notification.ProductId);
             product.Deposit(notification.Quantity);
             await _productStockRepository.Update(product);
             await _unitOfWork.Commit();

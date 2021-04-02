@@ -32,8 +32,8 @@ namespace WebApi.Aplication
                 request.OrderBy);
 
             var ids = result.Data.Select(it => it.Id);
-            var stocks = await _productStock.List(it => ids.Contains(it.ProductId));
-            var records = result.Data.Join(stocks, it => it.Id, it => it.ProductId, (p, s) => new
+            var stocks = await _productStock.List(it => ids.Contains(it.Id));
+            var records = result.Data.Join(stocks, it => it.Id, it => it.Id, (p, s) => new
             {
                 p.Id,
                 p.SKU,

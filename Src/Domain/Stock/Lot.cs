@@ -8,8 +8,8 @@ namespace Domain.Stock
     public class Lot : BaseEntity
     {
         public virtual Guid ProductId { get; private set; }
-        public decimal CostPrice { get; private set; }
-        public decimal SalePrice { get; private set; }
+        public decimal CostPrice { get; set; }
+        public decimal SalePrice { get; set; }
         public decimal Quantity { get; private set; }
         public decimal CurrentyQuantity { get; private set; }
         public decimal ReservedQuantity { get; private set; }

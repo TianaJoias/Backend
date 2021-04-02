@@ -10,8 +10,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Infra.EF.Migrations.NPGSQL
 {
     [DbContext(typeof(TianaJoiasContextDB))]
-    [Migration("20210210223204_ADD_PRODUCT_SUPPLIER")]
-    partial class ADD_PRODUCT_SUPPLIER
+    [Migration("20210213175507_INITAL")]
+    partial class INITAL
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -285,9 +285,6 @@ namespace Infra.EF.Migrations.NPGSQL
                         .HasColumnType("uuid")
                         .HasColumnName("Id");
 
-                    b.Property<Guid>("ProductId")
-                        .HasColumnType("uuid");
-
                     b.Property<decimal>("Quantity")
                         .HasColumnType("numeric");
 
@@ -467,7 +464,7 @@ namespace Infra.EF.Migrations.NPGSQL
             modelBuilder.Entity("Domain.Stock.SupplierProduct", b =>
                 {
                     b.HasOne("Domain.Stock.ProductStock", "Product")
-                        .WithMany("Suppliers")
+                        .WithMany()
                         .HasForeignKey("ProductId");
 
                     b.HasOne("Domain.Stock.Supplier", "Supplier")
@@ -517,11 +514,6 @@ namespace Infra.EF.Migrations.NPGSQL
             modelBuilder.Entity("Domain.Catalog.Catalog", b =>
                 {
                     b.Navigation("Items");
-                });
-
-            modelBuilder.Entity("Domain.Stock.ProductStock", b =>
-                {
-                    b.Navigation("Suppliers");
                 });
 #pragma warning restore 612, 618
         }

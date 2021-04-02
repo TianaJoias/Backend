@@ -1,3 +1,4 @@
+﻿using dotenv.net;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 using System.Threading.Tasks;
@@ -13,6 +14,7 @@ namespace WebApi
             Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
+                    DotEnv.Load();
                     webBuilder.UseStartup<Startup>();
                 });
     }
