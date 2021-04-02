@@ -18,8 +18,8 @@ using Mapster;
 using Domain.Portifolio;
 using WebApi.Aplication;
 using System.Linq;
-using System;
 using WebApi.Controllers;
+using OpenTelemetry.Resources;
 
 namespace WebApi
 {
@@ -45,11 +45,16 @@ namespace WebApi
                     {
                         it.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
                     });
-            services.AddOpenTelemetryTracing((builder) => builder
-                .AddAspNetCoreInstrumentation()
-                .AddHttpClientInstrumentation()                
-                .AddConsoleExporter());
-            
+            services.AddOpenTelemetryTracing(
+                (builder) =>
+                {
+                    builder
+                 .SetResourceBuilder(
+                      ResourceBuilder.CreateDefault().AddService("BackofficeApi"))
+                  .AddAspNetCoreInstrumentation()
+                  .AddJaegerExporter()
+                  .AddConsoleExporter();
+                });
             services.AddSwagger();
             services.AddSecurity();
             services.AddOptions(Configuration);
@@ -59,6 +64,7 @@ namespace WebApi
             services.AddMediatR(typeof(Startup));
             services.AddScoped<ErrorHandlerMiddleware>();
             services.AddSingleton<IFileBatchLotParser, BatchLotParser>();
+            services.AddHealthChecks();
             services.AddCors(options =>
             {
                 options.AddPolicy("mypolicy",
@@ -88,7 +94,6 @@ namespace WebApi
             app.UseRouting();
             app.UseAuthentication();
             app.UseAuthorization();
-
             app.UseMiddleware<ErrorHandlerMiddleware>();
             app.UseEndpoints(endpoints =>
             {
