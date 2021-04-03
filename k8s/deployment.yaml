@@ -13,6 +13,9 @@ spec:
       version: v1
   template:
     metadata:
+      annotations:
+        prometheus.io/scrape: 'true'
+        prometheus.io/port: "52325"
       labels:
         app: backoffice-api
         version: v1
@@ -30,26 +33,37 @@ spec:
             requests:
               cpu: 100m
               memory: 128Mi
-          # terminationGracePeriodSeconds: 30
+          terminationGracePeriodSeconds: 30
           ports:
             - name: http-port
               containerPort: 80
-          # livenessProbe:
-          #   httpGet:
-          #     path: /live
-          #     port: management-port
-          #   initialDelaySeconds: 5
-          #   periodSeconds: 5    
-          #   failureThreshold: 6          
-          # readinessProbe:
-          #   httpGet:
-          #     path: /ready
-          #     port: management-port
-          #   initialDelaySeconds: 2
-          #   timeoutSeconds: 2
-          #   periodSeconds: 5
-          #   failureThreshold: 6
+          livenessProbe:
+            httpGet:
+              path: /health/liveness
+              port: management-port
+            initialDelaySeconds: 5
+            periodSeconds: 5    
+            failureThreshold: 6          
+          readinessProbe:
+            httpGet:
+              path: /health/readiness
+              port: management-port
+            initialDelaySeconds: 2
+            timeoutSeconds: 2
+            periodSeconds: 5
+            failureThreshold: 6
           envFrom:
             - configMapRef:
                 name: backoffice-api
                 optional: true
+        - name: sidecar
+          image: mcr.microsoft.com/dotnet/nightly/monitor
+          ports:
+            - containerPort: 52325
+          args: ["--urls", "http://*:52323", "--metricUrls", "http://*:52325"]
+          volumeMounts:
+             - name: diagnostics
+               mountPath: /tmp
+      httpGet:
+        path: /health/ready
+        port: 80

@@ -20,6 +20,13 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Domain", "Src\Domain\Domain.csproj", "{40DE6518-60F2-4556-9254-CD0673E8E69D}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "k8s", "k8s", "{1C9EB7C2-4F1A-4B79-9E9A-CAFB8865990E}"
+	ProjectSection(SolutionItems) = preProject
+		k8s\configmap.yaml = k8s\configmap.yaml
+		k8s\deployment.yaml = k8s\deployment.yaml
+		k8s\hpa.yaml = k8s\hpa.yaml
+		k8s\ingress.yaml = k8s\ingress.yaml
+		k8s\service.yaml = k8s\service.yaml
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

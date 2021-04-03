@@ -20,6 +20,11 @@ using WebApi.Aplication;
 using System.Linq;
 using WebApi.Controllers;
 using OpenTelemetry.Resources;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+using System;
 
 namespace WebApi
 {
@@ -63,7 +68,7 @@ namespace WebApi
             services.AddMediatR(typeof(Startup));
             services.AddScoped<ErrorHandlerMiddleware>();
             services.AddSingleton<IFileBatchLotParser, BatchLotParser>();
-            services.AddHealthChecks();
+            services.AddHealthChecks().AddDbContextCheck<TianaJoiasContextDB>();
             services.AddCors(options =>
             {
                 options.AddPolicy("mypolicy",
@@ -97,12 +102,31 @@ namespace WebApi
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+                endpoints.MapHealthChecks("/health/liveness", new
+                    HealthCheckOptions()
+                {
+                    Predicate = (_) => false,
+                    ResponseWriter = WriteResponseLiveness
+                });
+                endpoints.MapHealthChecks("/health/readiness", new
+                    HealthCheckOptions()
+                {
+                    ResponseWriter = WriteResponseReadiness
+                });
             });
             app.UseVersionedSwagger(provider);
 
             TianaJoiasContextDB.Seeding(dataContext, passwordService).Wait();
             TypeAdapterConfig<Product, ProductQueryResult>.NewConfig()
                 .Map(dest => dest.Tags, src => src.Tags.Select(it => it.Id));
+        }
+        private Task WriteResponseReadiness(HttpContext context, HealthReport result)
+        {
+            return context.Response.WriteAsync("Readiness");
+        }
+        private Task WriteResponseLiveness(HttpContext context, HealthReport result)
+        {
+            return context.Response.WriteAsync("Liveness");
         }
     }
 }
