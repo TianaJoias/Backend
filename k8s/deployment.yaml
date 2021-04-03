@@ -20,11 +20,11 @@ spec:
         app: backoffice-api
         version: v1
     spec:
-      imagePullSecrets:
-        - name: azure-acr    
+#      imagePullSecrets:
+#        - name: azure-acr    
       containers:
         - name: backoffice-api
-          image: tianajoias.azurecr.io/tianajoiasapi:${IMAGE_TAG}
+#          image: tianajoias.azurecr.io/tianajoiasapi:#{IMAGE_TAG}#
           imagePullPolicy: Always
           resources:
             limits:
@@ -57,7 +57,7 @@ spec:
                 name: backoffice-api
                 optional: true
         - name: sidecar
-          image: mcr.microsoft.com/dotnet/nightly/monitor
+          image: mcr.microsoft.com/dotnet/nightly/monitor:5.0
           ports:
             - containerPort: 52325
           args: ["--urls", "http://*:52323", "--metricUrls", "http://*:52325"]

@@ -1,4 +1,4 @@
-name: BuildPipeline
+name: BackendApi
 
 # Run this workflow every time a new commit pushed to your repository
 on:
@@ -9,19 +9,13 @@ on:
   #     - master\
 env:
   AZURE_WEBAPP_NAME: tianajoiasapi # set this to your application's name
-  IMAGE_TAG: ${{ github.run_id }}.${{ github.run_number }}
-  IMAGE_NAME_TAG: ${{ secrets.CONTAINER_REGISTRY }}/tianajoiasapi:${{ env.IMAGE_TAG }}
+  IMAGE_NAME_TAG: ${{ secrets.CONTAINER_REGISTRY }}/tianajoiasapi:${{ github.run_id }}.${{ github.run_number }}
+  SECRET_NAME: azure-acr
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      # - name: Use Node.js
-      #   uses: actions/setup-node@v1
-      #   with:
-      #     node-version: 14.x
-      # - run: yarn
-      # - run: yarn build
       - uses: azure/docker-login@v1
         with:
           login-server: ${{ secrets.CONTAINER_REGISTRY }}
@@ -30,11 +24,6 @@ jobs:
       - run: |
           docker build -t ${{ env.IMAGE_NAME_TAG }} --label "git-commit=${{ github.sha }}" --label "sourcebranch=${{ github.ref }}" -f Src/WebApi/Dockerfile .  
           docker push ${{ env.IMAGE_NAME_TAG }}
-      - uses: cschleiden/replace-tokens@v1
-        with:
-          files: '["k8s/**/*.yaml"]'
-        env:
-          IMAGE_TAG: ${{ env.IMAGE_TAG }}
       - name: K8s Artifactis
         uses: actions/upload-artifact@v2
         with:
@@ -44,28 +33,35 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    environment:
+        name: dev
     steps:
       - uses: actions/download-artifact@v2
         with:
           name: k8s
-          path: manifests/artifact   
+          path: manifests   
       - uses: cschleiden/replace-tokens@v1
         with:
-          files: '["manifests/artifact/**/*.yaml"]'
+          files: '["manifests/**/*.yaml"]'
         env:
-          IMAGE_TAG: ${{ secrets.CONNECTION_STRING }}
+          CONNECTION_STRING: ${{ secrets.CONNECTION_STRING }}
       - uses: Azure/aks-set-context@v1
         with:
           creds: '${{ secrets.AZURE_CREDENTIALS }}'
-          cluster-name: contoso
-          resource-group: contoso-rg                        
+          cluster-name: k8stest
+          resource-group: azure-k8stest                 
+      - uses: Azure/k8s-create-secret@v1
+        with:
+          container-registry-url: ${{ secrets.CONTAINER_REGISTRY }}
+          container-registry-username: ${{ secrets.REGISTRY_USERNAME }}
+          container-registry-password: ${{ secrets.REGISTRY_PASSWORD }}
+          secret-name: demo-k8s-secret          
       - uses: azure/k8s-deploy@v1
         with:
           manifests: |
-            manifests/deployment.yml
-            manifests/service.yml
+            manifests/**/*.yml
           images: |
-            ${{ env.REGISTRY_NAME }}.azurecr.io/${{ env.APP_NAME }}:${{ github.sha }}
+            ${{ env.IMAGE_NAME_TAG }}
           imagepullsecrets: |
-            ${{ env.SECRET }}
-          namespace: ${{ env.NAMESPACE }}
+            ${{ env.SECRET_NAME }}
+          namespace: default
