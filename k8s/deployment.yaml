@@ -20,11 +20,14 @@ spec:
         app: backoffice-api
         version: v1
     spec:
-#      imagePullSecrets:
-#        - name: azure-acr    
+      imagePullSecrets:
+        - name: azure-acr
+      volumes:
+      - name: diagnostics
+        emptyDir: {}
       containers:
         - name: backoffice-api
-#          image: tianajoias.azurecr.io/tianajoiasapi:#{IMAGE_TAG}#
+          image: tianajoias.azurecr.io/tianajoiasapi:713467946.27
           imagePullPolicy: Always
           resources:
             limits:
@@ -37,18 +40,21 @@ spec:
           ports:
             - name: http-port
               containerPort: 80
+          volumeMounts:
+            - mountPath: /tmp
+              name: diagnostics
           livenessProbe:
             httpGet:
               path: /health/liveness
-              port: management-port
-            initialDelaySeconds: 5
+              port: http-port
+            initialDelaySeconds: 60
             periodSeconds: 5    
             failureThreshold: 6          
           readinessProbe:
             httpGet:
               path: /health/readiness
-              port: management-port
-            initialDelaySeconds: 2
+              port: http-port
+            initialDelaySeconds: 120
             timeoutSeconds: 2
             periodSeconds: 5
             failureThreshold: 6
@@ -58,12 +64,13 @@ spec:
                 optional: true
         - name: sidecar
           image: mcr.microsoft.com/dotnet/nightly/monitor:5.0
+          volumeMounts:
+            - mountPath: /tmp
+              name: diagnostics
           ports:
             - containerPort: 52325
           args: ["--urls", "http://*:52323", "--metricUrls", "http://*:52325"]
-          volumeMounts:
-             - name: diagnostics
-               mountPath: /tmp
-      httpGet:
-        path: /health/ready
-        port: 80
+          livenessProbe:
+            httpGet:
+              path: /health/ready
+              port: 80

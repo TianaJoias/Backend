@@ -12,7 +12,8 @@ namespace Infra.EF
 {
     public sealed class TianaJoiasContextDB : DbContext
     {
-        public TianaJoiasContextDB(DbContextOptions options) : base(options) { }
+        public TianaJoiasContextDB(DbContextOptions options) : base(options) {
+        }
 
         public DbSet<Product> Products { get; set; }
 

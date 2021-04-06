@@ -20,7 +20,7 @@ namespace Infra.EF
                 .AsSelfWithInterfaces().WithScopedLifetime());
 
             services.AddScoped<IUnitOfWork, UnitOfWork>();
-            services.AddDbContextPool<TianaJoiasContextDB>(options => UseDatabase(options, Configuration));
+            services.AddDbContextPool<TianaJoiasContextDB>(options => UseDatabase(options, Configuration), 100);
             return services;
         }
 

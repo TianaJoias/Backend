@@ -99,6 +99,7 @@ namespace WebApi
             app.UseAuthentication();
             app.UseAuthorization();
             app.UseMiddleware<ErrorHandlerMiddleware>();
+            TianaJoiasContextDB.Seeding(dataContext, passwordService).Wait();
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
@@ -116,7 +117,6 @@ namespace WebApi
             });
             app.UseVersionedSwagger(provider);
 
-            TianaJoiasContextDB.Seeding(dataContext, passwordService).Wait();
             TypeAdapterConfig<Product, ProductQueryResult>.NewConfig()
                 .Map(dest => dest.Tags, src => src.Tags.Select(it => it.Id));
         }

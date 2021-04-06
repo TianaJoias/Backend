@@ -24,7 +24,7 @@ jobs:
       - run: |
           docker build -t ${{ env.IMAGE_NAME_TAG }} --label "git-commit=${{ github.sha }}" --label "sourcebranch=${{ github.ref }}" -f Src/WebApi/Dockerfile .  
           docker push ${{ env.IMAGE_NAME_TAG }}
-      - name: K8s Artifactis
+      - name: K8s Manifest
         uses: actions/upload-artifact@v2
         with:
           name: k8s
