@@ -26,18 +26,18 @@ spec:
       volumes:
       - name: diagnostics
         emptyDir: {}
+      terminationGracePeriodSeconds: 30
       containers:
         - name: backoffice-api
           image: tianajoias.azurecr.io/tianajoiasapi:713467946.27
           imagePullPolicy: Always
           resources:
             limits:
-              cpu: 100m
+              cpu: 500m
               memory: 250Mi
             requests:
               cpu: 100m
               memory: 128Mi
-          terminationGracePeriodSeconds: 30
           ports:
             - name: http-port
               containerPort: 80
