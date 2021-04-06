@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: backoffice-api-v1
+  name: backoffice-api
   labels:
     app: backoffice-api
     version: v1
@@ -29,7 +29,7 @@ spec:
       terminationGracePeriodSeconds: 30
       containers:
         - name: backoffice-api
-          image: tianajoias.azurecr.io/tianajoiasapi:713467946.27
+          image: tianajoias.azurecr.io/tianajoiasapi:tag
           imagePullPolicy: Always
           resources:
             limits:
