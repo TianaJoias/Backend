@@ -99,14 +99,13 @@ namespace WebApi
             app.UseAuthentication();
             app.UseAuthorization();
             app.UseMiddleware<ErrorHandlerMiddleware>();
-            TianaJoiasContextDB.Seeding(dataContext, passwordService).Wait();
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
                 endpoints.MapHealthChecks("/health/liveness", new
                     HealthCheckOptions()
                 {
-                    Predicate = (_) => false,
+                    Predicate = (_) => false,                    
                     ResponseWriter = WriteResponseLiveness
                 });
                 endpoints.MapHealthChecks("/health/readiness", new
@@ -119,6 +118,8 @@ namespace WebApi
 
             TypeAdapterConfig<Product, ProductQueryResult>.NewConfig()
                 .Map(dest => dest.Tags, src => src.Tags.Select(it => it.Id));
+
+            TianaJoiasContextDB.Seeding(dataContext, passwordService);
         }
         private Task WriteResponseReadiness(HttpContext context, HealthReport result)
         {

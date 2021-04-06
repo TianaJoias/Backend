@@ -16,6 +16,7 @@ spec:
       annotations:
         prometheus.io/scrape: 'true'
         prometheus.io/port: "52325"
+        linkerd.io/inject: enabled        
       labels:
         app: backoffice-api
         version: v1
@@ -70,7 +71,3 @@ spec:
           ports:
             - containerPort: 52325
           args: ["--urls", "http://*:52323", "--metricUrls", "http://*:52325"]
-          livenessProbe:
-            httpGet:
-              path: /health/ready
-              port: 80
