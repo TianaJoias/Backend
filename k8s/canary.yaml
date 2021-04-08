@@ -2,7 +2,6 @@ apiVersion: flagger.app/v1beta1
 kind: Canary
 metadata:
   name: backoffice-api
-  namespace: test
 spec:
   # deployment reference
   targetRef:
@@ -29,7 +28,7 @@ spec:
     threshold: 5
     # max traffic percentage routed to canary
     # percentage (0-100)
-    maxWeight: 100 
+    maxWeight: 50 
     # canary increment step
     # percentage (0-100)
     stepWeight: 10

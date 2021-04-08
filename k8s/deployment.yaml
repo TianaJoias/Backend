@@ -4,13 +4,11 @@ metadata:
   name: backoffice-api
   labels:
     app: backoffice-api
-    version: v1
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: backoffice-api
-      version: v1
   template:
     metadata:
       annotations:
@@ -29,7 +27,7 @@ spec:
       terminationGracePeriodSeconds: 30
       containers:
         - name: backoffice-api
-          image: tianajoias.azurecr.io/tianajoiasapi:tag
+          image: tianajoias.azurecr.io/tianajoiasapi:713467946.27
           imagePullPolicy: Always
           resources:
             limits:
@@ -63,11 +61,11 @@ spec:
             - configMapRef:
                 name: backoffice-api
                 optional: true
-        - name: sidecar
-          image: mcr.microsoft.com/dotnet/nightly/monitor:5.0
-          volumeMounts:
-            - mountPath: /tmp
-              name: diagnostics
-          ports:
-            - containerPort: 52325
-          args: ["--urls", "http://*:52323", "--metricUrls", "http://*:52325"]
+        # - name: sidecar
+        #   image: mcr.microsoft.com/dotnet/nightly/monitor:5.0
+        #   volumeMounts:
+        #     - mountPath: /tmp
+        #       name: diagnostics
+        #   ports:
+        #     - containerPort: 52325
+        #   args: ["--urls", "http://*:52323", "--metricUrls", "http://*:52325"]
