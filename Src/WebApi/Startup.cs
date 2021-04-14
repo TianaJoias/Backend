@@ -11,21 +11,14 @@ using Microsoft.Extensions.Hosting;
 using WebApi.Extensions;
 using WebApi.Security;
 using Infra.EF;
-using OpenTelemetry.Trace;
 using Domain.Account;
-using WebApi.Filters;
 using Mapster;
 using Domain.Portifolio;
 using WebApi.Aplication;
 using System.Linq;
 using WebApi.Controllers;
-using OpenTelemetry.Resources;
-using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using OpenTelemetry.Logs;
-using OpenTelemetry;
-using System.Diagnostics;
 using WebApi.Filters.GlobalErrorHandling.Extensions;
 
 namespace WebApi
@@ -52,37 +45,7 @@ namespace WebApi
                     {
                         it.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
                     });
-
-            services.AddOpenTelemetryTracing(
-                (builder) =>
-                {
-                    builder
-                     .SetResourceBuilder(
-                          ResourceBuilder.CreateDefault().AddService("BackofficeApi"))
-                      .AddAspNetCoreInstrumentation()
-                      .AddSqlClientInstrumentation()
-                      .AddJaegerExporter(options =>
-                      {
-                          options.AgentHost = Configuration.GetSection("Jaeger")?.GetValue<string>("Host") ?? string.Empty;
-                          options.AgentPort = Configuration.GetSection("Jaeger")?.GetValue<int>("Port") ?? 0;
-                          options.ExportProcessorType = ExportProcessorType.Batch;
-                          options.BatchExportProcessorOptions = new BatchExportProcessorOptions<Activity>()
-                          {
-                              MaxQueueSize = 2048,
-                              ScheduledDelayMilliseconds = 5000,
-                              ExporterTimeoutMilliseconds = 30000,
-                              MaxExportBatchSize = 512,
-                          };
-                      });
-                });
-
-            services.AddLogging(builder =>
-            {
-                builder.AddOpenTelemetry(options =>
-                {
-                    options.SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("BackofficeApi")).AddConsoleExporter();
-                });
-            });
+            services.AddOpenTelemetry(Configuration);
             services.AddSwagger();
             services.AddSecurity();
             services.AddOptions(Configuration);
@@ -104,9 +67,7 @@ namespace WebApi
 
             services.AddSingleton<IPasswordService, PasswordService>();
             services.AddHttpContextAccessor();
-            services.AddHealthChecks()
-                .AddDbContextCheck<TianaJoiasContextDB>(tags: new[] { "Default" })
-                .AddProcessAllocatedMemoryHealthCheck(200, tags: new[] { "Default" });
+            services.AddHealthChecksCustom();
         }
 
 
@@ -133,17 +94,7 @@ namespace WebApi
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
-                endpoints.MapHealthChecks("/health/liveness", new
-                    HealthCheckOptions()
-                {
-                    Predicate = (_) => false
-                });
-
-                endpoints.MapHealthChecks("/health/readiness", new
-                     HealthCheckOptions()
-                {
-                    Predicate = (check) => check.Tags.Contains("Default")
-                });
+                endpoints.UseHealthChecks();
             });
             app.UseVersionedSwagger(provider);
 
