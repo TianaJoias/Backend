@@ -20,12 +20,11 @@
     <PackageReference Include="CsvHelper" Version="26.1.0" />
     <PackageReference Include="dotenv.net" Version="3.0.0" />
     <PackageReference Include="FluentResults" Version="2.3.0" />
-    <PackageReference Include="FluentValidation.AspNetCore" Version="9.5.3" />
+    <PackageReference Include="FluentValidation.AspNetCore" Version="10.0.2" />
     <PackageReference Include="Google.Apis.Auth" Version="1.51.0" />
     <PackageReference Include="Mapster" Version="7.2.0" />
     <PackageReference Include="MediatR" Version="9.0.0" />
     <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="9.0.0" />
-    <PackageReference Include="MicroElements.Swashbuckle.FluentValidation" Version="4.3.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="5.0.5" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="5.0.5" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning.ApiExplorer" Version="5.0.0" />

@@ -74,7 +74,8 @@ namespace WebApi.Extensions
 
             options.OperationFilter<AuthenticationRequirementsOperationFilter>();
             options.AddSecurityRequirement(security);
-            options.AddFluentValidationRules();
+            //TODO: Comentando apos atualizado a FluentValidation.AspNetCore
+            //options.AddFluentValidationRules(); 
         }
 
         private static string XmlCommentsFilePath
