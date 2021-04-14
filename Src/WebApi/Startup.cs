@@ -22,9 +22,11 @@ using WebApi.Controllers;
 using OpenTelemetry.Resources;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Diagnostics.HealthChecks;
-using System;
+using Microsoft.Extensions.Logging;
+using OpenTelemetry.Logs;
+using OpenTelemetry;
+using System.Diagnostics;
+using WebApi.Filters.GlobalErrorHandling.Extensions;
 
 namespace WebApi
 {
@@ -50,15 +52,37 @@ namespace WebApi
                     {
                         it.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
                     });
+
             services.AddOpenTelemetryTracing(
                 (builder) =>
                 {
                     builder
-                 .SetResourceBuilder(
-                      ResourceBuilder.CreateDefault().AddService("BackofficeApi"))
-                  .AddAspNetCoreInstrumentation()
-                  .AddJaegerExporter();
+                     .SetResourceBuilder(
+                          ResourceBuilder.CreateDefault().AddService("BackofficeApi"))
+                      .AddAspNetCoreInstrumentation()
+                      .AddSqlClientInstrumentation()
+                      .AddJaegerExporter(options =>
+                      {
+                          options.AgentHost = Configuration.GetSection("Jaeger")?.GetValue<string>("Host") ?? string.Empty;
+                          options.AgentPort = Configuration.GetSection("Jaeger")?.GetValue<int>("Port") ?? 0;
+                          options.ExportProcessorType = ExportProcessorType.Batch;
+                          options.BatchExportProcessorOptions = new BatchExportProcessorOptions<Activity>()
+                          {
+                              MaxQueueSize = 2048,
+                              ScheduledDelayMilliseconds = 5000,
+                              ExporterTimeoutMilliseconds = 30000,
+                              MaxExportBatchSize = 512,
+                          };
+                      });
                 });
+
+            services.AddLogging(builder =>
+            {
+                builder.AddOpenTelemetry(options =>
+                {
+                    options.SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("BackofficeApi")).AddConsoleExporter();
+                });
+            });
             services.AddSwagger();
             services.AddSecurity();
             services.AddOptions(Configuration);
@@ -66,9 +90,7 @@ namespace WebApi
             services.AddHttpClient();
             services.AddSqlLite(Configuration);
             services.AddMediatR(typeof(Startup));
-            services.AddScoped<ErrorHandlerMiddleware>();
             services.AddSingleton<IFileBatchLotParser, BatchLotParser>();
-            services.AddHealthChecks().AddDbContextCheck<TianaJoiasContextDB>();
             services.AddCors(options =>
             {
                 options.AddPolicy("mypolicy",
@@ -82,12 +104,21 @@ namespace WebApi
 
             services.AddSingleton<IPasswordService, PasswordService>();
             services.AddHttpContextAccessor();
+            services.AddHealthChecks()
+                .AddDbContextCheck<TianaJoiasContextDB>(tags: new[] { "Default" })
+                .AddProcessAllocatedMemoryHealthCheck(200, tags: new[] { "Default" });
         }
+
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env,
-            IApiVersionDescriptionProvider provider, TianaJoiasContextDB dataContext, IPasswordService passwordService)
+            IApiVersionDescriptionProvider provider, TianaJoiasContextDB dataContext, IPasswordService passwordService, ILoggerFactory loggerFactory)
         {
+            Task.Run(async () =>
+            {
+                await TianaJoiasContextDB.Seeding(dataContext, passwordService);
+            });
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -98,36 +129,26 @@ namespace WebApi
             app.UseRouting();
             app.UseAuthentication();
             app.UseAuthorization();
-            app.UseMiddleware<ErrorHandlerMiddleware>();
+            app.UseGlobalExceptionHandler(loggerFactory);
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
                 endpoints.MapHealthChecks("/health/liveness", new
                     HealthCheckOptions()
                 {
-                    Predicate = (_) => false,                    
-                    ResponseWriter = WriteResponseLiveness
+                    Predicate = (_) => false
                 });
+
                 endpoints.MapHealthChecks("/health/readiness", new
-                    HealthCheckOptions()
+                     HealthCheckOptions()
                 {
-                    ResponseWriter = WriteResponseReadiness
+                    Predicate = (check) => check.Tags.Contains("Default")
                 });
             });
             app.UseVersionedSwagger(provider);
 
             TypeAdapterConfig<Product, ProductQueryResult>.NewConfig()
                 .Map(dest => dest.Tags, src => src.Tags.Select(it => it.Id));
-
-            TianaJoiasContextDB.Seeding(dataContext, passwordService);
-        }
-        private Task WriteResponseReadiness(HttpContext context, HealthReport result)
-        {
-            return context.Response.WriteAsync("Readiness");
-        }
-        private Task WriteResponseLiveness(HttpContext context, HealthReport result)
-        {
-            return context.Response.WriteAsync("Liveness");
         }
     }
 }

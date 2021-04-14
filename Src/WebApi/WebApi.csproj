@@ -15,13 +15,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="AspNetCore.HealthChecks.System" Version="5.0.1" />
     <PackageReference Include="BCrypt.Net-Next" Version="4.0.2" />
     <PackageReference Include="CsvHelper" Version="26.1.0" />
     <PackageReference Include="dotenv.net" Version="3.0.0" />
     <PackageReference Include="FluentResults" Version="2.3.0" />
     <PackageReference Include="FluentValidation.AspNetCore" Version="9.5.3" />
     <PackageReference Include="Google.Apis.Auth" Version="1.51.0" />
-    <PackageReference Include="Mapster" Version="7.1.5" />
+    <PackageReference Include="Mapster" Version="7.2.0" />
     <PackageReference Include="MediatR" Version="9.0.0" />
     <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="9.0.0" />
     <PackageReference Include="MicroElements.Swashbuckle.FluentValidation" Version="4.3.0" />
@@ -33,7 +34,9 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="5.0.4" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="5.0.1" />
     <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="5.0.4" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="5.0.0" />
     <PackageReference Include="Microsoft.Extensions.PlatformAbstractions" Version="1.1.0" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.10.9" />
     <PackageReference Include="OpenTelemetry.Api" Version="1.1.0-beta1" />
@@ -42,6 +45,7 @@
     <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.0.0-rc3" />
     <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.0.0-rc3" />
     <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.0.0-rc3" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.SqlClient" Version="1.0.0-rc3" />
     <PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="6.1.1" />
     <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="6.1.1" />
     <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUi" Version="6.1.1" />

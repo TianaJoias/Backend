@@ -1,39 +1,58 @@
 ﻿using System;
 using Microsoft.AspNetCore.Http;
 using System.Net;
-using System.Threading.Tasks;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Diagnostics;
+using OpenTelemetry.Trace;
 
 namespace WebApi.Filters
 {
-    public class ErrorHandlerMiddleware: IMiddleware
+    namespace GlobalErrorHandling.Extensions
     {
-        private readonly ILogger<ErrorHandlerMiddleware> _logger;
-
-        public ErrorHandlerMiddleware(ILogger<ErrorHandlerMiddleware> logger)
+        public static class ExceptionMiddlewareExtensions
         {
-            _logger = logger;
-        }
+            public class ErrorDetails
+            {
+                public int StatusCode { get; set; }
+                public string Message { get; set; }
+                public string TraceId { get; set; }
 
-        public async Task InvokeAsync(HttpContext context, RequestDelegate next)
-        {
-            try
-            {
-                await next(context);
-            }
-            catch (Exception error)
-            {
-                _logger.LogError(error, "Not handled exception.");
-                var response = context.Response;
-                response.ContentType = "application/json";
-                response.StatusCode = error switch
+                public override string ToString()
                 {
-                    UnauthorizedAccessException => StatusCodes.Status401Unauthorized,// not found error
-                    _ => (int)HttpStatusCode.InternalServerError,// unhandled error
-                };
-                var result = JsonSerializer.Serialize(new { message = error?.Message });
-                await response.WriteAsync(result);
+                    return JsonSerializer.Serialize(this);
+                }
+            }
+            public static void UseGlobalExceptionHandler(this IApplicationBuilder app, ILoggerFactory loggerFactory)
+            {
+                app.UseExceptionHandler(appError =>
+                {
+                    appError.Run(async context =>
+                    {
+                        context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+                        context.Response.ContentType = "application/json";
+                        var contextFeature = context.Features.Get<IExceptionHandlerFeature>();
+                        if (contextFeature != null)
+                        {
+                            var logger = loggerFactory.CreateLogger("GlobalExceptionHandler");
+                            logger.LogError(contextFeature.Error, "Not handled exception.");
+
+                            context.Response.StatusCode = contextFeature.Error switch
+                            {
+                                UnauthorizedAccessException => StatusCodes.Status401Unauthorized,// not found error
+                                _ => (int)HttpStatusCode.InternalServerError,// unhandled error
+                            };
+
+                            await context.Response.WriteAsync(new ErrorDetails()
+                            {
+                                StatusCode = context.Response.StatusCode,
+                                Message = contextFeature.Error.Message,
+                                TraceId = Tracer.CurrentSpan.Context.TraceId.ToHexString()
+                            }.ToString());
+                        }
+                    });
+                });
             }
         }
     }

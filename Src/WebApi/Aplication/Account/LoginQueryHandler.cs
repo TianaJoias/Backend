@@ -24,7 +24,7 @@ namespace WebApi.Aplication.Account
         public async Task<Result<LoginQueryResult>> Handle(PasswordLoginQuery request, CancellationToken cancellationToken)
         {
             var account = await _accountRepository.GetByQuery(it => it.User.Email.ToLower() == request.Username.ToLower());
-            if (await _passwordService.Verify(request.Password, account?.User.Password))
+            if (account is not null && await _passwordService.Verify(request.Password, account?.User.Password))
             {
                 var result = CreateToken(account.Id.ToString(), account.Roles.ToArray());
                 return Result.Ok(result);
