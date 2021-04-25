@@ -20,6 +20,8 @@ using WebApi.Controllers;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using WebApi.Filters.GlobalErrorHandling.Extensions;
+using App.Metrics.AspNetCore.Endpoints;
+using App.Metrics;
 
 namespace WebApi
 {
@@ -53,6 +55,8 @@ namespace WebApi
             services.AddHttpClient();
             services.AddSqlLite(Configuration);
             services.AddMediatR(typeof(Startup));
+            services.AddCache();
+
             services.AddSingleton<IFileBatchLotParser, BatchLotParser>();
             services.AddCors(options =>
             {
@@ -94,7 +98,7 @@ namespace WebApi
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
-                endpoints.UseHealthChecks();
+                endpoints.UseHealthChecks(Configuration);
             });
             app.UseVersionedSwagger(provider);
 

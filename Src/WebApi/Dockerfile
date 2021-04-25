@@ -4,6 +4,7 @@ FROM mcr.microsoft.com/dotnet/aspnet:5.0-alpine AS base
 WORKDIR /app
 EXPOSE 80
 EXPOSE 443
+EXPOSE 1111
 
 FROM mcr.microsoft.com/dotnet/sdk:5.0-alpine AS build
 RUN dotnet tool install --tool-path /tools dotnet-trace
