@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace WebApi.Aplication.Stock.Queries.ProductSuppliers
 {

@@ -20,8 +20,6 @@ using WebApi.Controllers;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using WebApi.Filters.GlobalErrorHandling.Extensions;
-using App.Metrics.AspNetCore.Endpoints;
-using App.Metrics;
 
 namespace WebApi
 {
@@ -54,7 +52,7 @@ namespace WebApi
             services.AddVersioning();
             services.AddHttpClient();
             services.AddSqlLite(Configuration);
-            services.AddMediatR(typeof(Startup));
+            services.AddMediatR(typeof(Startup), typeof(IQuery<>));
             services.AddCache();
 
             services.AddSingleton<IFileBatchLotParser, BatchLotParser>();

@@ -29,6 +29,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "k8s", "k8s", "{1C9EB7C2-4F1
 		k8s\service.yaml = k8s\service.yaml
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Application", "Src\Application\Application.csproj", "{692973ED-066F-4866-A341-8F423CC7D8CF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -51,6 +53,10 @@ Global
 		{40DE6518-60F2-4556-9254-CD0673E8E69D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{40DE6518-60F2-4556-9254-CD0673E8E69D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{40DE6518-60F2-4556-9254-CD0673E8E69D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{692973ED-066F-4866-A341-8F423CC7D8CF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{692973ED-066F-4866-A341-8F423CC7D8CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{692973ED-066F-4866-A341-8F423CC7D8CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{692973ED-066F-4866-A341-8F423CC7D8CF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
