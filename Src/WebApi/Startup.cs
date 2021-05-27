@@ -66,7 +66,7 @@ namespace WebApi
                 app.UseDeveloperExceptionPage();
             }
 
-            app.UseHttpsRedirection();
+            //app.UseHttpsRedirection();
             app.UseCors();
             app.UseRouting();
             app.UseAuthentication();
