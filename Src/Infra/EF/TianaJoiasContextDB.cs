@@ -7,12 +7,16 @@ using Domain.Portifolio;
 using Domain.Account;
 using Domain.Stock;
 using Domain.Catalog;
+using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Infra.EF
 {
     public sealed class TianaJoiasContextDB : DbContext
     {
-        public TianaJoiasContextDB(DbContextOptions options) : base(options) {
+        public TianaJoiasContextDB(DbContextOptions options) : base(options)
+        {
         }
 
         public DbSet<Product> Products { get; set; }
@@ -22,17 +26,26 @@ namespace Infra.EF
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(ProductMapper).Assembly);
         }
 
-        public static async Task Seeding(TianaJoiasContextDB context, IPasswordService passwordService)
+        public async Task Seeding(IPasswordService passwordService)
         {
-            context.Database.Migrate();
-            var guid = Guid.Parse("{0963682F-4DBC-4827-B500-B7F45A6345C3}");
-            var adminAccount = await context.Set<Account>().FirstOrDefaultAsync(b => b.Id == guid);
-            if (adminAccount is null)
+
+            var logger = this.GetInfrastructure().GetRequiredService<ILoggerFactory>();
+            try
             {
-                await AddAccount(context, passwordService, guid);
-                await AddTags(context);
-                await AddSupplier(context);
-                await context.SaveChangesAsync();
+                Database.Migrate();
+                var guid = Guid.Parse("{0963682F-4DBC-4827-B500-B7F45A6345C3}");
+                var adminAccount = await Set<Account>().FirstOrDefaultAsync(b => b.Id == guid);
+                if (adminAccount is null)
+                {
+                    await AddAccount(this, passwordService, guid);
+                    await AddTags(this);
+                    await AddSupplier(this);
+                    await SaveChangesAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.CreateLogger<TianaJoiasContextDB>().LogError(ex, "Entity Framework migration error");
             }
         }
 

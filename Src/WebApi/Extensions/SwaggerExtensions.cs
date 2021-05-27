@@ -88,8 +88,9 @@ namespace WebApi.Extensions
             }
         }
 
-        public static IApplicationBuilder UseVersionedSwagger(this IApplicationBuilder app, IApiVersionDescriptionProvider provider, Action<SwaggerOptions> setupAction = null)
+        public static IApplicationBuilder UseVersionedSwagger(this IApplicationBuilder app, IServiceProvider serviceProvider, Action<SwaggerOptions> setupAction = null)
         {
+            var provider = serviceProvider.GetService<IApiVersionDescriptionProvider>();
             app.UseSwagger();
             app.UseSwaggerUI(
                 options =>

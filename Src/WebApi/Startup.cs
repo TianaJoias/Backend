@@ -3,7 +3,6 @@ using FluentValidation.AspNetCore;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,14 +11,11 @@ using WebApi.Extensions;
 using WebApi.Security;
 using Infra.EF;
 using Domain.Account;
-using Mapster;
-using Domain.Portifolio;
 using WebApi.Aplication;
-using System.Linq;
 using WebApi.Controllers;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using WebApi.Filters.GlobalErrorHandling.Extensions;
+using System;
 
 namespace WebApi
 {
@@ -54,19 +50,8 @@ namespace WebApi
             services.AddSqlLite(Configuration);
             services.AddMediatR(typeof(Startup), typeof(IQuery<>));
             services.AddCache();
-
-            services.AddSingleton<IFileBatchLotParser, BatchLotParser>();
-            services.AddCors(options =>
-            {
-                options.AddPolicy("mypolicy",
-                    builder => builder
-                    .AllowAnyOrigin()
-                    .AllowAnyHeader()
-                    .AllowAnyMethod());
-                options.AddPolicy("AllowMyOrigin",
-                builder => builder.WithOrigins("https://localhost:3000"));
-            });
-
+            services.AddCorsCustom();
+            services.AddSingleton<IFileBatchLotParser, BatchLotParser>(); 
             services.AddSingleton<IPasswordService, PasswordService>();
             services.AddHttpContextAccessor();
             services.AddHealthChecksCustom();
@@ -74,34 +59,27 @@ namespace WebApi
 
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env,
-            IApiVersionDescriptionProvider provider, TianaJoiasContextDB dataContext, IPasswordService passwordService, ILoggerFactory loggerFactory)
-        {
-            Task.Run(async () =>
-            {
-                await TianaJoiasContextDB.Seeding(dataContext, passwordService);
-            });
-
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IServiceProvider serviceProvider, IServiceScopeFactory serviceScopeFactory)
+        { 
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
 
             app.UseHttpsRedirection();
-            app.UseCors("mypolicy");
+            app.UseCors();
             app.UseRouting();
             app.UseAuthentication();
             app.UseAuthorization();
-            app.UseGlobalExceptionHandler(loggerFactory);
+            app.UseGlobalExceptionHandler(serviceProvider);
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
                 endpoints.UseHealthChecks(Configuration);
             });
-            app.UseVersionedSwagger(provider);
-
-            TypeAdapterConfig<Product, ProductQueryResult>.NewConfig()
-                .Map(dest => dest.Tags, src => src.Tags.Select(it => it.Id));
+            app.UseVersionedSwagger(serviceProvider);
+            app.UserTypeAdapter();
+            app.UseEF(serviceScopeFactory);
         }
     }
 }

@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
 using OpenTelemetry.Trace;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace WebApi.Filters
 {
@@ -24,8 +25,9 @@ namespace WebApi.Filters
                     return JsonSerializer.Serialize(this);
                 }
             }
-            public static void UseGlobalExceptionHandler(this IApplicationBuilder app, ILoggerFactory loggerFactory)
+            public static void UseGlobalExceptionHandler(this IApplicationBuilder app, IServiceProvider serviceProvider)
             {
+                var loggerFactory = serviceProvider.GetService<ILoggerFactory>();
                 app.UseExceptionHandler(appError =>
                 {
                     appError.Run(async context =>

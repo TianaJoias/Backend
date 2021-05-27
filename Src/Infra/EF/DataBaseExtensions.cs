@@ -1,8 +1,12 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Domain;
+using Domain.Account;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace Infra.EF
 {
@@ -20,14 +24,31 @@ namespace Infra.EF
                 .AsSelfWithInterfaces().WithScopedLifetime());
 
             services.AddScoped<IUnitOfWork, UnitOfWork>();
-            services.AddDbContextPool<TianaJoiasContextDB>(options => UseDatabase(options, Configuration), 100);
+            services.AddDbContextPool<TianaJoiasContextDB>((serviceProvider, optionsBuilder) =>
+            {
+
+                UseDatabase(optionsBuilder, Configuration, serviceProvider);
+            });
             return services;
         }
 
-        private static DbContextOptionsBuilder UseDatabase(DbContextOptionsBuilder options, IConfiguration configuration)
+        public static void UseEF(this IApplicationBuilder app, IServiceScopeFactory serviceScopeFactory)
+        {
+            Task.Run(async () =>
+            {
+                using var scope = serviceScopeFactory.CreateScope();
+                var serviceProvider = scope.ServiceProvider;
+                var dataContext = serviceProvider.GetService<TianaJoiasContextDB>();
+                var passwordService = serviceProvider.GetService<IPasswordService>();
+                await dataContext.Seeding(passwordService);
+            });
+        }
+
+        private static DbContextOptionsBuilder UseDatabase(DbContextOptionsBuilder options, IConfiguration configuration, IServiceProvider serviceProvider)
         {
             var dbStrategy = configuration.GetSection("DBStrategy").Value;
             dbStrategy = dbStrategy.ToUpper();
+            //var builder = options.UseInternalServiceProvider(serviceProvider);
             string connectionString;
             switch (dbStrategy)
             {
