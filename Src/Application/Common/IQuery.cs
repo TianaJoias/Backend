@@ -1,7 +1,7 @@
 ﻿using FluentResults;
 using MediatR;
 
-namespace WebApi.Aplication
+namespace Application.Common
 {
     public interface IQuery<TResult> : IRequest<Result<TResult>>
     {

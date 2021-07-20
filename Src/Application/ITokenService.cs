@@ -1,7 +1,7 @@
 ﻿using System;
 using Domain.Account;
 
-namespace WebApi.Security.Custom
+namespace Application
 {
     public interface ITokenService
     {

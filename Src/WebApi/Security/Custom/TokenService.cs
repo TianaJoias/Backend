@@ -3,6 +3,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
 using System.Security.Principal;
+using Application;
 using Domain.Account;
 using Mapster.Utils;
 using Microsoft.IdentityModel.Tokens;

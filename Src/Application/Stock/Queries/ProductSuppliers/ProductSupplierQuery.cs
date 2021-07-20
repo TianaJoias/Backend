@@ -1,8 +1,9 @@
 ﻿using System;
+using Application.Common;
 
-namespace WebApi.Aplication.Stock.Queries.ProductSuppliers
+namespace Application.Stock.Queries.ProductSuppliers
 {
-    public class ProductSupplierQuery: FilterPagedQuery<PagedData<ProductSupplierResult>>
+    public class ProductSupplierQuery: QueryPaged<ProductSupplierResult>
     {
         public Guid ProductId { get; set; }
     }

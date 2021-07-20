@@ -1,7 +1,5 @@
-﻿using System.Linq;
-using Domain;
+﻿using Domain;
 using Domain.Stock;
-using Microsoft.EntityFrameworkCore;
 
 namespace Infra.EF.Repositories
 {
@@ -9,10 +7,5 @@ namespace Infra.EF.Repositories
     {
         public LotRepository(IUnitOfWork unitOfWork, TianaJoiasContextDB context) : base(unitOfWork, context)
         { }
-
-        public override IQueryable<Lot> Load(IQueryable<Lot> query)
-        {
-            return query.Include(it => it.Suppliers);
-        }
     }
 }

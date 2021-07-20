@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Application.Common;
 using Domain;
 using Domain.Catalog;
 using Domain.Portifolio;
@@ -14,7 +15,7 @@ namespace WebApi.Aplication.Catalog.Commands
 {
     public class CatalogAddPackageCommandHandler : ICommandHandler<CatalogAddPackageCommand>
     {
-        private readonly IProductRepository _product;
+        private readonly IProductRepository _productRepository;
         private readonly ILotRepository _lotRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICatalogRepository _catalogRepository;
@@ -22,7 +23,7 @@ namespace WebApi.Aplication.Catalog.Commands
 
         public CatalogAddPackageCommandHandler(IProductRepository product, ILotRepository lotRepository, IUnitOfWork unitOfWork, ICatalogRepository catalogRepository, IAgentRepository channelRepository)
         {
-            _product = product;
+            _productRepository = product;
             _lotRepository = lotRepository;
             _unitOfWork = unitOfWork;
             _catalogRepository = catalogRepository;
@@ -58,15 +59,15 @@ namespace WebApi.Aplication.Catalog.Commands
         private async Task<(Agent agent, IList<Product> products, IList<Lot> lots, Domain.Catalog.Catalog catalog)> GetData(CatalogAddPackageCommand request)
         {
             var lotsIds = request.Items.Select(it => it.LotId).ToList();
-            var lotsTask = _lotRepository.List(it => lotsIds.Contains(it.Id));
+            var lotsTask = _lotRepository.Filter(it => lotsIds.Contains(it.Id));
             await lotsTask;
-            var agentTask = _agentRepository.GetByQuery(it => it.Id == request.AgentId && it.AccountableId == request.AccountableId);
+            var agentTask = _agentRepository.Find(it => it.Id == request.AgentId && it.AccountableId == request.AccountableId);
             await agentTask;
-            var catalogTask = _catalogRepository.GetByQuery(it => it.Agent.AccountableId == request.AccountableId && it.Agent.Id == request.AgentId && it.State == States.Preparation);
+            var catalogTask = _catalogRepository.Find(it => it.Agent.AccountableId == request.AccountableId && it.Agent.Id == request.AgentId && it.State == States.Preparation);
             await Task.WhenAll(lotsTask, agentTask, catalogTask);
             var lots = await lotsTask;
             var productsIds = lots.Select(it => it.ProductId).ToList();
-            var productsTask = _product.List(it => productsIds.Contains(it.Id));
+            var productsTask = _productRepository.Filter(it => productsIds.Contains(it.Id));
             return (agent: await agentTask, products: await productsTask, lots, catalog: await catalogTask);
         }
     }

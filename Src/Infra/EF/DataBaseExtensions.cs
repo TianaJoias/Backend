@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 
 namespace Infra.EF
 {
@@ -20,7 +19,7 @@ namespace Infra.EF
             //https://www.treinaweb.com.br/blog/utilizando-o-nhibernate-em-uma-aplicacao-asp-net-core/
             services.Scan(scan => scan
                  .FromAssemblyOf<TianaJoiasContextDB>()
-                .AddClasses(classes => classes.AssignableTo(typeof(IRepository<>)))
+                .AddClasses(classes => classes.AssignableTo(typeof(IRepositoryWrite<>)))
                 .AsSelfWithInterfaces().WithScopedLifetime());
 
             services.AddScoped<IUnitOfWork, UnitOfWork>();

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace WebApi.Aplication.Stock.Queries.ProductSuppliers
+namespace Application.Stock.Queries.ProductSuppliers
 {
     public class ProductSupplierResult
     {

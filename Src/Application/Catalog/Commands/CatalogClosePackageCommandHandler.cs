@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Application.Common;
 using Domain;
 using Domain.Catalog;
 using Domain.Portifolio;
@@ -30,7 +31,7 @@ namespace WebApi.Aplication.Catalog.Commands
         }
         public async Task<Result> Handle(CatalogClosePackageCommand request, CancellationToken cancellationToken)
         {
-            var catalog = await _catalogRepository.GetByQuery(it => it.Agent.Id == request.OwnerId && it.Id == request.CatalogId);
+            var catalog = await _catalogRepository.Find(it => it.Agent.Id == request.OwnerId && it.Id == request.CatalogId);
             if (catalog is null)
                 return Result.Fail("CATALOG_NOT_FOUND");
             catalog.Next();
@@ -45,7 +46,7 @@ namespace WebApi.Aplication.Catalog.Commands
 
         public async Task<Result> Handle(CatalogNextStatusCommand request, CancellationToken cancellationToken)
         {
-            var catalog = await _catalogRepository.GetByQuery(it => it.Agent.Id == request.AgentId && it.Id == request.CatalogId);
+            var catalog = await _catalogRepository.Find(it => it.Agent.Id == request.AgentId && it.Id == request.CatalogId);
             if (catalog is null)
                 return Result.Fail("CATALOG_NOT_FOUND");
             catalog.Next();
@@ -56,14 +57,14 @@ namespace WebApi.Aplication.Catalog.Commands
 
         public async Task<Result> Handle(CatalogTransferItemsCommand request, CancellationToken cancellationToken)
         {
-            var fromCatalogTask = _catalogRepository.GetByQuery(it => it.Agent.Id == request.AgentId && it.Id == request.FromCatalogId);
-            var toCatalogTask = _catalogRepository.GetByQuery(it => it.Agent.Id == request.AgentId && it.Id == request.ToCatalogId);
+            var fromCatalogTask = _catalogRepository.Find(it => it.Agent.Id == request.AgentId && it.Id == request.FromCatalogId);
+            var toCatalogTask = _catalogRepository.Find(it => it.Agent.Id == request.AgentId && it.Id == request.ToCatalogId);
             var lotsIds = request.Items.Select(it => it.LotId);
-            var lotsTask = _lotRepository.List(it => lotsIds.Contains(it.Id));
+            var lotsTask = _lotRepository.Filter(it => lotsIds.Contains(it.Id));
             await Task.WhenAll(fromCatalogTask, toCatalogTask, lotsTask);
             var lots = await lotsTask;
             var productsIds = lots.Select(it => it.ProductId);
-            var products = await _productRespository.List(it => productsIds.Contains(it.Id));
+            var products = await _productRespository.Filter(it => productsIds.Contains(it.Id));
             var fromCatalog = await fromCatalogTask;
             var toCatalog = await toCatalogTask;
             if (fromCatalog is null || toCatalog is null)

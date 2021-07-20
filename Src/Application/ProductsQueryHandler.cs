@@ -4,14 +4,17 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Application.Common;
+using Domain;
 using Domain.Portifolio;
+using Domain.Specification;
 using Domain.Stock;
 using FluentResults;
 using Mapster;
 
-namespace WebApi.Aplication
+namespace Application
 {
-    public class ProductsQueryHandler : IQueryHandler<ProductQuery, PagedData<ProductQueryResult>>,
+    public class ProductsQueryHandler : IQueryPagedHandler<ProductQuery, ProductQueryResult>,
         IQueryHandler<ProductQueryById, ProductQueryResult>
     {
         private readonly IProductRepository _productRepository;
@@ -23,17 +26,17 @@ namespace WebApi.Aplication
             _productStock = productStock;
         }
 
-        public async Task<Result<PagedData<ProductQueryResult>>> Handle(ProductQuery request, CancellationToken cancellationToken)
+        public async Task<Result<PagedList<ProductQueryResult>>> Handle(ProductQuery request, CancellationToken cancellationToken)
         {
             Expression<Func<Product, bool>> query = it => it.Description.Contains(request.SearchTerm) || it.SKU.Contains(request.SearchTerm) || it.Tags.Any(x => x.Name.Contains(request.SearchTerm));
             if (string.IsNullOrWhiteSpace(request.SearchTerm))
                 query = it => true;
-            var result = await _productRepository.GetPaged(query, request.Page, request.PageSize,
-                request.OrderBy);
+            var spec = SpecifcationBuilder<Product>.Where(query).WithPage(request.PageNumber, request.PageSize).Sort(request.Sort).Build();
+            var result = await _productRepository.Filter(spec);
 
-            var ids = result.Data.Select(it => it.Id);
-            var stocks = await _productStock.List(it => ids.Contains(it.Id));
-            var records = result.Data.Join(stocks, it => it.Id, it => it.Id, (p, s) => new
+            var ids = result.Select(it => it.Id);
+            var stocks = await _productStock.Filter(it => ids.Contains(it.Id));
+            var records = result.Join(stocks, it => it.Id, it => it.Id, (p, s) => new
             {
                 p.Id,
                 p.SKU,
@@ -42,7 +45,7 @@ namespace WebApi.Aplication
                 s.Quantity,
                 s.ReservedQuantity
             }).ToList();
-            var rest = result.Data.Where(it => !records.Any(r => r.Id == it.Id)).Select(p => new
+            var rest = result.Where(it => !records.Any(r => r.Id == it.Id)).Select(p => new
             {
                 p.Id,
                 p.SKU,
@@ -52,16 +55,16 @@ namespace WebApi.Aplication
                 ReservedQuantity = (decimal)0
             }).ToList();
             records.AddRange(rest);
-            var records22 = records.Adapt<IList<ProductQueryResult>>();
+            var records22 = records.Adapt<List<ProductQueryResult>>();
 
-            var dto = new PagedData<ProductQueryResult>(result.CurrentPage, result.TotalPages, result.TotalRows, records22);
+            var dto = new PagedList<ProductQueryResult>(records22, result.CurrentPage, result.TotalPages, result.TotalCount);
             return Result.Ok(dto);
         }
 
 
         public async Task<Result<ProductQueryResult>> Handle(ProductQueryById request, CancellationToken cancellationToken)
         {
-            var result = await _productRepository.GetById(request.Id);
+            var result = await _productRepository.Find(request.Id);
             return Result.Ok(result.Adapt<ProductQueryResult>());
         }
     }

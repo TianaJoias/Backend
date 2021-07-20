@@ -1,6 +1,8 @@
-﻿namespace WebApi.Aplication
+﻿using Application.Common;
+
+namespace Application
 {
-    public class ProductQuery : FilterPagedQuery<PagedData<ProductQueryResult>>
+    public class ProductQuery : QueryPaged<ProductQueryResult>
     {
         public string SearchTerm { get; set; }
     }

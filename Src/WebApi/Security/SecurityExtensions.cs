@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authentication.Google;
+﻿using Application;
+using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.DependencyInjection;

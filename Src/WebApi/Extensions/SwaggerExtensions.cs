@@ -15,6 +15,7 @@ using WebApi.Filters;
 
 namespace WebApi.Extensions
 {
+
     public class AuthenticationRequirementsOperationFilter : IOperationFilter
     {
         public void Apply(OpenApiOperation operation, OperationFilterContext context)
@@ -46,11 +47,11 @@ namespace WebApi.Extensions
             options.OperationFilter<SwaggerDefaultValues>();
             options.OperationFilter<CultureFilter>();
             options.OperationFilter<UnauthorizedFilter>();
-            //options.OperationFilter<BadRequestFilter>();
+            options.OperationFilter<JsonQueryOperationFilter>();
             options.OperationFilter<NotFoundFilter>();
+            options.OperationFilter<FromQueryModelFilter>();
             // integrate xml comments
             options.IncludeXmlComments(XmlCommentsFilePath);
-
             options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {
                 In = ParameterLocation.Header,

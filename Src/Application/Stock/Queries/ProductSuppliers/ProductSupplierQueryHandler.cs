@@ -1,12 +1,15 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
+using Application.Common;
+using Domain;
+using Domain.Specification;
 using Domain.Stock;
 using FluentResults;
 using Mapster;
 
-namespace WebApi.Aplication.Stock.Queries.ProductSuppliers
+namespace Application.Stock.Queries.ProductSuppliers
 {
-    public class ProductSupplierQueryHandler : IQueryHandler<ProductSupplierQuery, PagedData<ProductSupplierResult>>
+    public class ProductSupplierQueryHandler : IQueryPagedHandler<ProductSupplierQuery, ProductSupplierResult>
     {
         private readonly ISupplierProductRepository _supplierProductRepository;
 
@@ -15,10 +18,11 @@ namespace WebApi.Aplication.Stock.Queries.ProductSuppliers
             _supplierProductRepository = supplierProductRepository;
         }
 
-        public async Task<Result<PagedData<ProductSupplierResult>>> Handle(ProductSupplierQuery request, CancellationToken cancellationToken)
+        public async Task<Result<PagedList<ProductSupplierResult>>> Handle(ProductSupplierQuery request, CancellationToken cancellationToken)
         {
-            var suppliers = await _supplierProductRepository.GetPaged(it => it.Product.Id == request.ProductId, request.Page, request.PageSize, request.OrderBy);
-            return Result.Ok(suppliers.Adapt<PagedData<ProductSupplierResult>>());
+            var spec = SpecifcationBuilder<SupplierProduct>.Where(it => it.Product.Id == request.ProductId).WithPage(request.PageNumber, request.PageSize).Build();
+            var suppliers = await _supplierProductRepository.Filter(spec);
+            return Result.Ok(suppliers.Adapt<PagedList<ProductSupplierResult>>());
         }
     }
 }

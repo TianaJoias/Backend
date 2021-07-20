@@ -4,8 +4,10 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Application.Common;
 using Domain;
 using Domain.Catalog;
+using Domain.Specification;
 using FluentResults;
 using Infra;
 using Mapster;
@@ -14,7 +16,7 @@ using static Domain.Catalog.Catalog;
 namespace WebApi.Aplication.Catalog.Queries
 {
     public class CatalogQueryHandler : IQueryHandler<CatalogQuery, CatalogWithItemsDTO>,
-        IQueryHandler<CatalogsByAgentQuery, PagedData<CatalogDTO>>
+        IQueryPagedHandler<CatalogsByAgentQuery, CatalogDTO>
     {
         private readonly ICatalogRepository _catalogRepository;
 
@@ -24,11 +26,11 @@ namespace WebApi.Aplication.Catalog.Queries
         }
         public async Task<Result<CatalogWithItemsDTO>> Handle(CatalogQuery request, CancellationToken cancellationToken)
         {
-            var catalog = await _catalogRepository.GetByQuery(it => it.Agent.Id == request.OwnerId && it.Id == request.CatalogId);
+            var catalog = await _catalogRepository.Filter(it => it.Agent.Id == request.OwnerId && it.Id == request.CatalogId);
             return Result.Ok(catalog.Adapt<CatalogWithItemsDTO>());
         }
 
-        public async Task<Result<PagedData<CatalogDTO>>> Handle(CatalogsByAgentQuery request, CancellationToken cancellationToken)
+        public async Task<Result<PagedList<CatalogDTO>>> Handle(CatalogsByAgentQuery request, CancellationToken cancellationToken)
         {
             Expression<Func<Domain.Catalog.Catalog, bool>> baseWhere = it => it.Agent.Id == request.OwnerId;
 
@@ -38,8 +40,9 @@ namespace WebApi.Aplication.Catalog.Queries
                 baseWhere = baseWhere.And(it => it.CreatedAt >= request.FromDate.Value.Date);
             if (request.ToDate is not null)
                 baseWhere = baseWhere.And(it => it.CreatedAt <= request.ToDate.Value.AddDays(1).Date.AddSeconds(-1));
-            var catalog = await _catalogRepository.GetPaged(baseWhere, request.Page, request.PageSize, request.OrderBy);
-            return Result.Ok(catalog.Adapt<PagedData<CatalogDTO>>());
+            var spec = SpecifcationBuilder<Domain.Catalog.Catalog>.Where(baseWhere).WithPage(request.PageNumber, request.PageSize).Build();
+            var catalog = await _catalogRepository.Filter(spec);
+            return Result.Ok(catalog.Adapt<PagedList<CatalogDTO>>());
         }
     }
 
@@ -77,12 +80,8 @@ namespace WebApi.Aplication.Catalog.Queries
     }
 
 
-    public class CatalogsByAgentQuery : FilterPagedQuery<PagedData<CatalogDTO>>
+    public class CatalogsByAgentQuery : QueryPaged<CatalogDTO>
     {
-        public CatalogsByAgentQuery() : base(("CreatedAt", Sort.Desc))
-        {
-
-        }
         public DateTime? FromDate { get; set; }
         public DateTime? ToDate { get; set; }
         public IList<States> States { get; set; }

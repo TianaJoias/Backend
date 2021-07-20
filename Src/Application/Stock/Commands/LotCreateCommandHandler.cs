@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Application.Common;
 using Domain;
+using Domain.Specification;
 using Domain.Stock;
 using FluentResults;
 
@@ -11,7 +13,7 @@ namespace WebApi.Aplication.Stock.Commands
 {
     public class LotCreateCommandHandler : ICommandHandler<LotCreateCommand>,
         ICommandHandler<LotUpdateCommand>,
-         ICommandHandler<BatchLotCreateCommand>
+         ICommandHandler<LotCreateBulkCommand>
     {
         private readonly ILotRepository _lotRepository;
         private readonly ISupplierRepository _supplierRepository;
@@ -37,7 +39,7 @@ namespace WebApi.Aplication.Stock.Commands
 
         private async Task LotAdd(LotCreateCommand request)
         {
-            var suppliers = await _supplierRepository.List(it => request.SuppliersId.Contains(it.Id));
+            var suppliers = await _supplierRepository.Filter(it => request.SuppliersId.Contains(it.Id));
             var lot = new Lot(request.ProductId, request.CostValue, request.SaleValue, request.Quantity, request.Number, suppliers)
             {
                 Weight = request.Weight,
@@ -49,8 +51,8 @@ namespace WebApi.Aplication.Stock.Commands
 
         public async Task<Result> Handle(LotUpdateCommand request, CancellationToken cancellationToken)
         {
-            var suppliers = await _supplierRepository.List(it => request.SuppliersId.Contains(it.Id));
-            var lot = await _lotRepository.GetById(request.Id);
+            var suppliers = await _supplierRepository.Filter(it => request.SuppliersId.Contains(it.Id));
+            var lot = await _lotRepository.Find(request.Id);
             lot.Weight = request.Weight;
             lot.Date = request.Date;
             lot.Number = request.Number;
@@ -63,7 +65,7 @@ namespace WebApi.Aplication.Stock.Commands
             return Result.Ok();
         }
 
-        public async Task<Result> Handle(BatchLotCreateCommand request, CancellationToken cancellationToken)
+        public async Task<Result> Handle(LotCreateBulkCommand request, CancellationToken cancellationToken)
         {
             await Task.WhenAll(request.Batch.Select(BatchExec).ToList());
             await _unitOfWork.Commit();
@@ -72,7 +74,7 @@ namespace WebApi.Aplication.Stock.Commands
 
         private async Task BatchExec(BatchLotCreateItemCommand item)
         {
-            var supplier = await _supplierProductRepository.GetByQuery(it => it.Code == item.ProductCode && it.Supplier.Id == item.SuppliersId);
+            var supplier = await _supplierProductRepository.Find(new SuplierProductByProductCodeAndId(item.ProductCode, item.SuppliersId));
             if (supplier is not null)
             {
                 var command = new LotCreateCommand(supplier.Product.Id, item.CostValue, item.SaleValue, item.Quantity, item.Number, new List<Guid>(1) { item.SuppliersId }, item.Weight, item.Date);
@@ -82,7 +84,7 @@ namespace WebApi.Aplication.Stock.Commands
 
         private async Task<string> NextEAN()
         {
-            var EAN = await _iEANRepository.GetByQuery(it => it.IsActive);
+            var EAN = await _iEANRepository.Find(it => it.IsActive);
             if (EAN is null)
             {
                 var newEan = new EAN();
@@ -102,7 +104,16 @@ namespace WebApi.Aplication.Stock.Commands
         }
     }
 
-    public record BatchLotCreateCommand(IList<BatchLotCreateItemCommand> Batch) : ICommand;
+    public class SuplierProductByProductCodeAndId : BaseSpecifcation<SupplierProduct>
+    {
+        public SuplierProductByProductCodeAndId(string code, Guid id) : base(it => it.Code == code && it.Supplier.Id == id)
+        {
+            AddInclude(x => x.Product);
+            AddInclude(x => x.Supplier);
+        }
+    }
+
+    public record LotCreateBulkCommand(IList<BatchLotCreateItemCommand> Batch) : ICommand;
     public record BatchLotCreateItemCommand
     {
         public Guid SuppliersId { get; set; }
@@ -138,11 +149,11 @@ namespace WebApi.Aplication.Stock.Commands
         }
         public async Task<Result> Handle(ProductSupplierCommand request, CancellationToken cancellationToken)
         {
-            var productSupplierExists = await _supplierProductRepository.Exists(it => it.Product.Id == request.ProductId && it.Supplier.Id == request.SupplierId && it.Code == request.Code);
+            var productSupplierExists = await _supplierProductRepository.Contains(it => it.Product.Id == request.ProductId && it.Supplier.Id == request.SupplierId && it.Code == request.Code);
             if (productSupplierExists)
                 return Result.Fail("Supplier with code aready registered.");
-            var product = await _productStock.GetById(request.ProductId);
-            var supplier = await _supplierRepository.GetByQuery(it => it.Id == request.SupplierId);
+            var product = await _productStock.Find(request.ProductId);
+            var supplier = await _supplierRepository.Find(it => it.Id == request.SupplierId);
             var productSupplier = new SupplierProduct(supplier, product, request.Code);
             await _supplierProductRepository.Add(productSupplier);
             await _unitOfWork.Commit();

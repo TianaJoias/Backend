@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Application.Common;
 using Domain;
 using Domain.Account;
 using Domain.Catalog;
@@ -27,7 +28,7 @@ namespace WebApi.Aplication.Catalog.Queries
         }
         public async Task<Result> Handle(CreateAgentCommand request, CancellationToken cancellationToken)
         {
-            var exists = await _accountRepository.Exists(it => it.User.Email.ToUpper() == request.Email.ToUpper());
+            var exists = await _accountRepository.Contains(it => it.User.Email.ToUpper() == request.Email.ToUpper());
             if (exists)
                 return Result.Fail("Email already exists.");
             var password = await _passwordService.Hash("password");

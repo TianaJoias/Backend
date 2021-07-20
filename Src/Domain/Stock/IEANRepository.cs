@@ -1,6 +1,6 @@
 ﻿namespace Domain.Stock
 {
-    public interface IEANRepository : IRepository<EAN>
+    public interface IEANRepository : IRepositoryWrite<EAN>, IRepositoryRead<EAN>
     {
     }
 }

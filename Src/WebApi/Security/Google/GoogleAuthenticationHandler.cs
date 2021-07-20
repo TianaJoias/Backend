@@ -51,7 +51,7 @@ namespace WebApi.Security.Google
             try
             {
                 var payload = await GoogleJsonWebSignature.ValidateAsync(securityToken);
-                var account = await _accountRepository.GetByQuery(it => it.ExternalProviders.Any(x => x.SubjectId == payload.Subject && x.Provider == GoogleAuthenticationDefaults.AuthenticationScheme));
+                var account = await _accountRepository.Find(it => it.ExternalProviders.Any(x => x.SubjectId == payload.Subject && x.Provider == GoogleAuthenticationDefaults.AuthenticationScheme));
                 if (account is not null)
                 {
                     var claims = new List<Claim>

@@ -1,32 +1,110 @@
-﻿using CsvHelper;
+﻿using Application;
+using Application.Common;
+using Application.Stock.Queries.ProductSuppliers;
+using CsvHelper;
 using CsvHelper.Configuration;
 using CsvHelper.TypeConversion;
 using Domain;
 using Domain.Account;
 using Domain.Portifolio;
+using Domain.Specification;
 using Domain.Stock;
 using FluentResults;
 using FluentValidation;
 using Mapster;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Binders;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.IO;
 using System.Linq;
 using System.Security.Claims;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-using WebApi.Aplication;
 using WebApi.Aplication.Stock.Commands;
 using WebApi.Aplication.Stock.Queries;
-using WebApi.Aplication.Stock.Queries.ProductSuppliers;
 using WebApi.Security;
 
 namespace WebApi.Controllers
 {
+    internal class SortQueryBinder : IModelBinder
+    {
+        private readonly ILogger<SortQueryBinder> _logger;
+        //private readonly IObjectModelValidator _validator;
+
+        public SortQueryBinder(ILogger<SortQueryBinder> logger)
+        {
+            _logger = logger;
+        }
+
+        public Task BindModelAsync(ModelBindingContext bindingContext)
+        {
+            var value = bindingContext.ValueProvider.GetValue(bindingContext.FieldName).FirstValue;
+            if (value == null)
+            {
+                return Task.CompletedTask;
+            }
+
+            try
+            {
+                var parsed = JsonSerializer.Deserialize(value, bindingContext.ModelType,
+                    new JsonSerializerOptions(JsonSerializerDefaults.Web));
+                bindingContext.Result = ModelBindingResult.Success(parsed);
+
+                //if (parsed != null)
+                //{
+                //    _validator.Validate(
+                //        bindingContext.ActionContext,
+                //        validationState: bindingContext.ValidationState,
+                //        prefix: string.Empty,
+                //        model: parsed
+                //    );
+                //}
+            }
+            catch (JsonException e)
+            {
+                _logger.LogError(e, "Failed to bind parameter '{FieldName}'", bindingContext.FieldName);
+                bindingContext.ActionContext.ModelState.TryAddModelError(key: e.Path, exception: e,
+                    bindingContext.ModelMetadata);
+            }
+            catch (Exception e) when (e is FormatException || e is OverflowException)
+            {
+                _logger.LogError(e, "Failed to bind parameter '{FieldName}'", bindingContext.FieldName);
+                bindingContext.ActionContext.ModelState.TryAddModelError(string.Empty, e, bindingContext.ModelMetadata);
+            }
+
+            return Task.CompletedTask;
+        }
+    }
+    /// <summary>
+    /// https://abdus.dev/posts/aspnetcore-model-binding-json-query-params/
+    /// </summary>
+    internal class FromSortQueryAttribute : ModelBinderAttribute
+    {
+        public FromSortQueryAttribute()
+        {
+            BinderType = typeof(SortQueryBinder);
+        }
+    }
+
+    public class FilterPaged
+    {
+        public int PageNumber { get; set; }
+        public int PageSize { get; set; }
+        public Dictionary<string, SortDirection> Sort { get; set; }
+    }
+
     public interface IFileBatchLotParser
     {
         Task<List<Result<BatchLotCreateItemCommand>>> Parser(Stream file);
@@ -65,6 +143,7 @@ namespace WebApi.Controllers
             }
         }
     }
+
     [Route("v{version:apiVersion}/[controller]")]
     [ApiController]
     [AuthorizeEnum(Roles.ADMIN)]
@@ -93,7 +172,7 @@ namespace WebApi.Controllers
         [HttpPost]
         public async Task<IActionResult> PostAsync([FromBody] ProductDTO productDTO)
         {
-            var tags = await _tagRepository.List(it => productDTO.Tags.Contains(it.Id));
+            var tags = await _tagRepository.Filter(it => productDTO.Tags.Contains(it.Id));
             var product = new Product(productDTO.Sku, productDTO.Description);
             tags.ForEach(product.AddTag);
             await _productRepository.Add(product);
@@ -123,8 +202,8 @@ namespace WebApi.Controllers
         [HttpPut("{id:guid}")]
         public async Task<IActionResult> Put(Guid id, [FromBody] ProductDTO productDTO)
         {
-            var tags = await _tagRepository.List(it => productDTO.Tags.Contains(it.Id));
-            var product = await _productRepository.GetById(id);
+            var tags = await _tagRepository.Filter(it => productDTO.Tags.Contains(it.Id));
+            var product = await _productRepository.Find(id);
             product.SKU = productDTO.Sku;
             product.Description = productDTO.Description;
             product.ClearTags();
@@ -147,7 +226,7 @@ namespace WebApi.Controllers
         [HttpGet("{productId:guid}/lots/{lotId:guid}")]
         public async Task<IActionResult> LotsGet(Guid productId, Guid lotId)
         {
-            var lots = await _lotsRepository.GetByQuery(it => it.ProductId == productId && it.Id == lotId);
+            var lots = await _lotsRepository.Filter(it => it.ProductId == productId && it.Id == lotId);
             return Ok(lots.Adapt<LotResponse>());
         }
         [HttpPut("{productId:guid}/lots/{lotId:guid}")]
@@ -166,12 +245,12 @@ namespace WebApi.Controllers
             return result.ToActionResult();
         }
 
-        [HttpPost("lots/batch")]
+        [HttpPost("lots/bulk")]
         public async Task<IActionResult> OnPostUploadAsync([FromForm] IFormFile file)
         {
             var items = await _fileBatchLotParser.Parser(file.OpenReadStream());
             var validItems = items.Where(it => it.IsSuccess).Select(it => it.Value);
-            var command = new BatchLotCreateCommand(validItems.ToList());
+            var command = new LotCreateBulkCommand(validItems.ToList());
             var result = await _mediator.Send(command);
             return Ok();
         }
@@ -203,10 +282,18 @@ namespace WebApi.Controllers
         }
 
         [HttpGet("suppliers")]
-        public async Task<IActionResult> SupplierGet()
+        public async Task<IActionResult> SupplierGet([FromQuery] FilterPaged request)
         {
-            var suppliers = await _supplierRepository.List();
-            return Ok(suppliers.Adapt<IList<SupplierResponse>>());
+            var spec = SpecifcationBuilder<Supplier>.All().WithPage(request.PageNumber, request.PageSize).Sort(request.Sort).Build();
+            var suppliers = await _supplierRepository.Filter(spec);
+            return Ok(new
+            {
+                items = suppliers,
+                suppliers.CurrentPage,
+                suppliers.TotalCount,
+                suppliers.TotalPages,
+                suppliers.PageSize,
+            });
         }
 
         [HttpPost("tags")]
@@ -218,11 +305,20 @@ namespace WebApi.Controllers
             return Ok(tag);
         }
 
-        [HttpGet("tags")]
-        public async Task<IActionResult> Tags()
+        [AllowAnonymous, HttpGet("tags")]
+        public async Task<IActionResult> Tags([FromQuery] FilterPaged request)
         {
-            var tags = await _tagRepository.List();
-            return Ok(tags);
+            var spec = SpecifcationBuilder<Tag>.All().WithPage(request.PageNumber, request.PageSize).Sort(request.Sort).Build();
+            var tags = await _tagRepository.Filter(spec);
+            return Ok(new
+            {
+                items = tags,
+                tags.CurrentPage,
+                tags.TotalCount,
+                tags.TotalPages,
+                tags.PageSize,
+            }
+                );
         }
     }
 

@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using Mapster;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using WebApi.Aplication;
 using WebApi.Aplication.Catalog.Commands;
 using WebApi.Aplication.Catalog.Queries;
 using static Domain.Catalog.Catalog;

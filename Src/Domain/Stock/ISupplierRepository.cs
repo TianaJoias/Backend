@@ -1,6 +1,6 @@
 ﻿namespace Domain.Stock
 {
-    public interface ISupplierRepository : IRepository<Supplier>
+    public interface ISupplierRepository : IRepositoryWrite<Supplier>, IRepositoryRead<Supplier>
     {
     }
 }

@@ -1,11 +1,11 @@
 ﻿using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Application.Common;
 using Domain.Account;
 using FluentResults;
-using WebApi.Security.Custom;
 
-namespace WebApi.Aplication.Account
+namespace Application.Account
 {
     public class LoginQueryHandler : IQueryHandler<PasswordLoginQuery, LoginQueryResult>,
         IQueryHandler<RefreshLoginQuery, LoginQueryResult>
@@ -23,7 +23,7 @@ namespace WebApi.Aplication.Account
 
         public async Task<Result<LoginQueryResult>> Handle(PasswordLoginQuery request, CancellationToken cancellationToken)
         {
-            var account = await _accountRepository.GetByQuery(it => it.User.Email.ToLower() == request.Username.ToLower());
+            var account = await _accountRepository.Find(it => it.User.Email.ToLower() == request.Username.ToLower());
             if (account is not null && await _passwordService.Verify(request.Password, account?.User.Password))
             {
                 var result = CreateToken(account.Id.ToString(), account.Roles.ToArray());

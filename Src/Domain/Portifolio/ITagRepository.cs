@@ -1,6 +1,6 @@
 ﻿namespace Domain.Portifolio
 {
-    public interface ITagRepository : IRepository<Tag>
+    public interface ITagRepository : IRepositoryWrite<Tag>, IRepositoryRead<Tag>
     {
     }
 }

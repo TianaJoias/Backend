@@ -1,6 +1,6 @@
 ﻿namespace Domain.Portifolio
 {
-    public interface IProductRepository : IRepository<Product>, IRepositoryPagination<Product>
+    public interface IProductRepository : IRepositoryWrite<Product>, IRepositoryRead<Product>
     {
     }
 }

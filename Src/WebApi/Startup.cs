@@ -11,11 +11,11 @@ using WebApi.Extensions;
 using WebApi.Security;
 using Infra.EF;
 using Domain.Account;
-using WebApi.Aplication;
 using WebApi.Controllers;
 using Microsoft.Extensions.Logging;
 using WebApi.Filters.GlobalErrorHandling.Extensions;
 using System;
+using Application.Common;
 
 namespace WebApi
 {
@@ -51,7 +51,7 @@ namespace WebApi
             services.AddMediatR(typeof(Startup), typeof(IQuery<>));
             services.AddCache();
             services.AddCorsCustom();
-            services.AddSingleton<IFileBatchLotParser, BatchLotParser>(); 
+            services.AddSingleton<IFileBatchLotParser, BatchLotParser>();
             services.AddSingleton<IPasswordService, PasswordService>();
             services.AddHttpContextAccessor();
             services.AddHealthChecksCustom();
@@ -60,7 +60,7 @@ namespace WebApi
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IServiceProvider serviceProvider, IServiceScopeFactory serviceScopeFactory)
-        { 
+        {
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();

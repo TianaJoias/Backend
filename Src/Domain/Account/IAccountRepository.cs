@@ -1,6 +1,6 @@
 ﻿namespace Domain.Account
 {
-    public interface IAccountRepository : IRepository<Account>
+    public interface IAccountRepository : IRepositoryWrite<Account>, IRepositoryRead<Account>
     {
     }
 }

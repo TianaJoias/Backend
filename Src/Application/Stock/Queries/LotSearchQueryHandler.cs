@@ -2,14 +2,17 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Application.Common;
+using Domain;
 using Domain.Portifolio;
+using Domain.Specification;
 using Domain.Stock;
 using FluentResults;
 using Mapster;
 
 namespace WebApi.Aplication.Stock.Queries
 {
-    public class LotSearchQueryHandler : IQueryHandler<LotSearchQuery, LotResult>, IQueryHandler<LotsByProductIdQuery, PagedData<LotResponse>>
+    public class LotSearchQueryHandler : IQueryHandler<LotSearchQuery, LotResult>, IQueryPagedHandler<LotsByProductIdQuery, LotResponse>
     {
         private readonly ILotRepository _lotRepository;
         private readonly IProductRepository _productRepository;
@@ -22,24 +25,28 @@ namespace WebApi.Aplication.Stock.Queries
 
         public async Task<Result<LotResult>> Handle(LotSearchQuery request, CancellationToken cancellationToken)
         {
-            var lot = await _lotRepository.GetByQuery(it => it.EAN.Equals(request.ean));
+            var lot = await _lotRepository.Find(it => it.EAN.Equals(request.ean));
             if (lot is null)
                 return Result.Ok<LotResult>(null);
-            var product = await _productRepository.GetById(lot.ProductId);
+            var product = await _productRepository.Find(lot.ProductId);
             var lotResult = product.Adapt<LotResult>();
             lotResult = lot.Adapt(lotResult);
             return Result.Ok(lotResult);
         }
 
-        public async Task<Result<PagedData<LotResponse>>> Handle(LotsByProductIdQuery request, CancellationToken cancellationToken)
+        public async Task<Result<PagedList<LotResponse>>> Handle(LotsByProductIdQuery request, CancellationToken cancellationToken)
         {
-            var lots = await _lotRepository.GetPaged(it => it.ProductId == request.ProductId, request.Page, request.PageSize, request.OrderBy);
-            var lotResult = lots.Adapt<PagedData<LotResponse>>();
+            var spec = SpecifcationBuilder<Lot>.Where(it => it.ProductId == request.ProductId)
+                .WithPage(request.PageNumber, request.PageSize)
+                //.WithOrderBy() https://code-maze.com/sorting-aspnet-core-webapi/
+                .Build();
+            var lots = await _lotRepository.Filter(spec);
+            var lotResult = lots.Adapt<PagedList<LotResponse>>();
             return Result.Ok(lotResult);
         }
     }
 
-    public class LotsByProductIdQuery : FilterPagedQuery<PagedData<LotResponse>>
+    public class LotsByProductIdQuery : QueryPaged<LotResponse>
     {
         public Guid ProductId { get; set; }
     }

@@ -1,11 +1,11 @@
 ﻿
 namespace Domain.Stock
 {
-    public interface IProductStockRepository : IRepository<ProductStock>
+    public interface IProductStockRepository : IRepositoryWrite<ProductStock>, IRepositoryRead<ProductStock>
     {
     }
 
-    public interface ISupplierProductRepository : IRepository<SupplierProduct>, IRepositoryPagination<SupplierProduct>
+    public interface ISupplierProductRepository : IRepositoryWrite<SupplierProduct>, IRepositoryRead<SupplierProduct>
     {
     }
 }

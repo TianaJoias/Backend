@@ -3,14 +3,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Application.Common;
+using Domain;
 using Domain.Account;
 using Domain.Catalog;
+using Domain.Specification;
 using FluentResults;
 using Mapster;
 
 namespace WebApi.Aplication.Catalog.Queries
 {
-    public class AgentsQueryHandler : IQueryHandler<AgentsQuery, PagedData<AgentsQueryResult>>
+    public class AgentsQueryHandler : IQueryPagedHandler<AgentsQuery, AgentsQueryResult>
     {
         private readonly IAgentRepository _agentRepository;
         private readonly IAccountRepository _accountRepository;
@@ -21,11 +24,11 @@ namespace WebApi.Aplication.Catalog.Queries
             _accountRepository = accountRepository;
         }
 
-        public async Task<Result<PagedData<AgentsQueryResult>>> Handle(AgentsQuery request, CancellationToken cancellationToken)
+        public async Task<Result<PagedList<AgentsQueryResult>>> Handle(AgentsQuery request, CancellationToken cancellationToken)
         {
-            var paged = await _agentRepository.List(it => it.AccountableId == request.AccountableId);
+            var paged = await _agentRepository.Filter(it => it.AccountableId == request.AccountableId);
             var ids = paged.Select(it => it.Id);
-            var x = await _accountRepository.List(it => ids.Contains(it.Id));
+            var x = await _accountRepository.Filter(it => ids.Contains(it.Id));
             var y = paged.Join(x, (it) => it.Id, it => it.Id, (agent, account) => new
             {
                 agent.Id,
@@ -34,13 +37,13 @@ namespace WebApi.Aplication.Catalog.Queries
                 agent.AccountableId,
                 CurrentCatalogId = agent.CurrentCatalog?.Id
             });
-            var records = y.Adapt<IList<AgentsQueryResult>>();
-            var result = new PagedData<AgentsQueryResult>(1, 1, paged.Count, records);
+            var records = y.Adapt<List<AgentsQueryResult>>();
+            var result = new PagedList<AgentsQueryResult>(records, 1, 1, paged.Count);
             return Result.Ok(result);
         }
     }
 
-    public class AgentsQuery : FilterPaged, IQuery<PagedData<AgentsQueryResult>>
+    public class AgentsQuery : QueryPaged<AgentsQueryResult>
     {
         public Guid AccountableId { get; set; }
     }
