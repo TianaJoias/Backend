@@ -83,7 +83,6 @@ namespace WebApi
             options => { Configuration.Bind("AzureAdB2C", options); });
             services.AddScoped<IIdentityService, IdentityService>();
             services.AddSingleton<IAuthorizationHandler, ScopesHandler>();
-            services.AddSingleton<IAppContext, WebAppContext>();
             services.AddAuthorization(options =>
             {
                 var userAuthPolicyBuilder = new AuthorizationPolicyBuilder();

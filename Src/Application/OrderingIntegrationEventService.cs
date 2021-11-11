@@ -21,7 +21,8 @@ namespace Application
 
         public async Task PublishEventsThroughEventBusAsync()
         {
-            var pendingLogEvents = await _eventLogService.RetrieveEventLogsPendingToPublishAsync(transactionId);
+            var pendingLogEvents = await _eventLogService.RetrieveEventLogsPendingToPublishAsync(""
+                );
 
             foreach (var logEvt in pendingLogEvents)
             {
@@ -46,7 +47,7 @@ namespace Application
         {
             _logger.LogInformation("----- Enqueuing integration event {IntegrationEventId} to repository ({@IntegrationEvent})", evt.Id, evt);
 
-            await _eventLogService.SaveEventAsync(evt, await _appContext.GetCurrentContext());
+            //   await _eventLogService.SaveEventAsync(evt, await _appContext.GetCurrentContext());
         }
     }
 }
