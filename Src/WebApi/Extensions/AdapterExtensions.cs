@@ -1,8 +1,4 @@
-﻿using System.Linq;
-using Application;
-using Domain.Portifolio;
-using Mapster;
-using Microsoft.AspNetCore.Builder;
+﻿using Microsoft.AspNetCore.Builder;
 
 namespace WebApi.Extensions
 {
@@ -10,8 +6,8 @@ namespace WebApi.Extensions
     {
         public static void UserTypeAdapter(this IApplicationBuilder app)
         {
-            TypeAdapterConfig<Product, ProductQueryResult>.NewConfig()
-                .Map(dest => dest.Tags, src => src.Tags.Select(it => it.Id));
+            //TypeAdapterConfig<Product, ProductQueryResult>.NewConfig()
+            //    .Map(dest => dest.Tags, src => src.Tags.Select(it => it.Id));
         }
     }
 }

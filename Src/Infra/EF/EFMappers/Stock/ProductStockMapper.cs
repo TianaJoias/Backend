@@ -4,9 +4,9 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Infra.EF.EFMappers.Stock
 {
-    internal class ProductStockMapper : EntityMapper<ProductStock>
+    internal class ProductStockMapper : EntityMapper<StockUnit>
     {
-        public override void Configure(EntityTypeBuilder<ProductStock> builder)
+        public override void Configure(EntityTypeBuilder<StockUnit> builder)
         {
             base.Configure(builder);
             builder.ToTable("ProductStock");
@@ -15,9 +15,9 @@ namespace Infra.EF.EFMappers.Stock
         }
     }
 
-    internal class SupplierProductMapper : EntityMapper<SupplierProduct>
+    internal class SupplierProductMapper : EntityMapper<ProductSupplier>
     {
-        public override void Configure(EntityTypeBuilder<SupplierProduct> builder)
+        public override void Configure(EntityTypeBuilder<ProductSupplier> builder)
         {
             base.Configure(builder);
             builder.ToTable("SupplierProduct");

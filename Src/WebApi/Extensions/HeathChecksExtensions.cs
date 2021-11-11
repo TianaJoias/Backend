@@ -1,4 +1,4 @@
-﻿using Infra.EF;
+﻿using Infra.Products;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Http;
@@ -14,7 +14,7 @@ namespace WebApi.Extensions
         public static IServiceCollection AddHealthChecksCustom(this IServiceCollection services)
         {
             services.AddHealthChecks()
-                .AddDbContextCheck<TianaJoiasContextDB>(tags: new[] { "Default" }, failureStatus: HealthStatus.Unhealthy)
+                .AddDbContextCheck<ProductContextDB>(tags: new[] { "Default" }, failureStatus: HealthStatus.Unhealthy)
                 .AddProcessAllocatedMemoryHealthCheck(200, failureStatus: HealthStatus.Degraded, tags: new[] { "Default" });
             return services;
         }

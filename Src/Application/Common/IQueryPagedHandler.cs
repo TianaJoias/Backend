@@ -1,5 +1,4 @@
-﻿using Domain;
-using Domain.Specification;
+﻿using Application.Specification;
 using FluentResults;
 using MediatR;
 

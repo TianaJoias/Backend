@@ -6,25 +6,23 @@ namespace Domain
 {
     public abstract class BaseEvent: INotification
     {
-        public Guid Id { get; set; }
-        public DateTime Date { get; set; }
-        public bool Handled { get; set; }
-        public int Retries { get; set; }
+        public DateTime CreateAt { get; private set; } = Clock.Now;
+        public bool Published { get; private set; } = false;
+
+        public void Publish()
+        {
+            Published = true;
+        }
     }
 
     public abstract class BaseEntity : IEntity
     {
         private readonly List<BaseEvent> _events = new();
         public IReadOnlyCollection<BaseEvent> Events => _events.AsReadOnly();
-        public Guid Id { get; set; }  = Guid.NewGuid();
-        public void AddEvent(BaseEvent @event)
+        public Guid Id { get; protected set; } = Guid.NewGuid();
+        protected void AddEvent(BaseEvent @event)
         {
             _events.Add(@event);
-        }
-
-        public void ClearEvents()
-        {
-            _events.Clear();
         }
     }
 }

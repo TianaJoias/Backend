@@ -4,11 +4,6 @@
         <name>WebApi</name>
     </assembly>
     <members>
-        <member name="T:WebApi.Controllers.FromSortQueryAttribute">
-            <summary>
-            https://abdus.dev/posts/aspnetcore-model-binding-json-query-params/
-            </summary>
-        </member>
         <member name="T:WebApi.Filters.ConfigureSwaggerOptions">
             <summary>
             Configures the Swagger generation options.

@@ -13,9 +13,9 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Infra.EF
 {
-    public sealed class TianaJoiasContextDB : DbContext
+    public sealed class ProductContextDB : DbContext
     {
-        public TianaJoiasContextDB(DbContextOptions options) : base(options)
+        public ProductContextDB(DbContextOptions options) : base(options)
         {
         }
 
@@ -45,11 +45,11 @@ namespace Infra.EF
             }
             catch (Exception ex)
             {
-                logger.CreateLogger<TianaJoiasContextDB>().LogError(ex, "Entity Framework migration error");
+                logger.CreateLogger<ProductContextDB>().LogError(ex, "Entity Framework migration error");
             }
         }
 
-        private static async Task AddSupplier(TianaJoiasContextDB context)
+        private static async Task AddSupplier(ProductContextDB context)
         {
             var supplier = new Supplier
             {
@@ -60,7 +60,7 @@ namespace Infra.EF
             await context.Set<Supplier>().AddRangeAsync(supplier);
         }
 
-        private static async Task AddTags(TianaJoiasContextDB context)
+        private static async Task AddTags(ProductContextDB context)
         {
             var tags = new List<Tag> {
                 new Tag("Anel", Tag.TagType.Group),
@@ -83,7 +83,7 @@ namespace Infra.EF
             await context.Set<Tag>().AddRangeAsync(tags);
         }
 
-        private static async Task AddAccount(TianaJoiasContextDB context, IPasswordService passwordService, Guid guid)
+        private static async Task AddAccount(ProductContextDB context, IPasswordService passwordService, Guid guid)
         {
             var password = await passwordService.Hash("ADMIN");
             var account = new Account

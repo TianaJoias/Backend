@@ -29,7 +29,15 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "k8s", "k8s", "{1C9EB7C2-4F1
 		k8s\service.yaml = k8s\service.yaml
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Application", "Src\Application\Application.csproj", "{692973ED-066F-4866-A341-8F423CC7D8CF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Application", "Src\Application\Application.csproj", "{692973ED-066F-4866-A341-8F423CC7D8CF}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{6A5F6116-34AC-40FC-9A8C-0E3736FE451A}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Domain.Tests", "Tests\Domain.Tests\Domain.Tests.csproj", "{D72EBE1A-DD08-4002-AB9D-DA551268A071}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TianaCli", "Src\TianaCli\TianaCli.csproj", "{65E672E8-23BA-41A2-9F7B-9712DB8D69A6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BuildingBlocks", "Src\BuildingBlocks\BuildingBlocks.csproj", "{86D21609-7DF8-4B01-AB8B-E2C4E141DD86}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -57,12 +65,25 @@ Global
 		{692973ED-066F-4866-A341-8F423CC7D8CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{692973ED-066F-4866-A341-8F423CC7D8CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{692973ED-066F-4866-A341-8F423CC7D8CF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D72EBE1A-DD08-4002-AB9D-DA551268A071}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D72EBE1A-DD08-4002-AB9D-DA551268A071}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D72EBE1A-DD08-4002-AB9D-DA551268A071}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D72EBE1A-DD08-4002-AB9D-DA551268A071}.Release|Any CPU.Build.0 = Release|Any CPU
+		{65E672E8-23BA-41A2-9F7B-9712DB8D69A6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{65E672E8-23BA-41A2-9F7B-9712DB8D69A6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{65E672E8-23BA-41A2-9F7B-9712DB8D69A6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{65E672E8-23BA-41A2-9F7B-9712DB8D69A6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{86D21609-7DF8-4B01-AB8B-E2C4E141DD86}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{86D21609-7DF8-4B01-AB8B-E2C4E141DD86}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{86D21609-7DF8-4B01-AB8B-E2C4E141DD86}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{86D21609-7DF8-4B01-AB8B-E2C4E141DD86}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{1C9EB7C2-4F1A-4B79-9E9A-CAFB8865990E} = {2B98ADB2-DE18-42F3-9628-2B7652F64382}
+		{D72EBE1A-DD08-4002-AB9D-DA551268A071} = {6A5F6116-34AC-40FC-9A8C-0E3736FE451A}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {67137CB8-F426-4D77-B04F-31696B6CE422}

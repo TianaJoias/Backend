@@ -1,11 +1,11 @@
-using Domain;
+﻿using Domain;
 using Domain.Stock;
 
 namespace Infra.EF.Repositories
 {
-    public class EANRepository : RepositoryBase<EAN>, IEANRepository
+    public class EANRepository : RepositoryBase<Configuration>, IConfigurationRepository
     {
-        public EANRepository(IUnitOfWork unitOfWork, TianaJoiasContextDB context) : base(unitOfWork, context)
+        public EANRepository(IUnitOfWork unitOfWork, ProductContextDB context) : base(unitOfWork, context)
         { }
 
     }

@@ -5,7 +5,7 @@ namespace Infra.EF.Repositories
 {
     public class TagRepository : RepositoryBase<Tag>, ITagRepository
     {
-        public TagRepository(IUnitOfWork unitOfWork, TianaJoiasContextDB context) : base(unitOfWork, context)
+        public TagRepository(IUnitOfWork unitOfWork, ProductContextDB context) : base(unitOfWork, context)
         { }
     }
 }

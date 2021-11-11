@@ -6,6 +6,7 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using WebApi.Aplication.Catalog.Commands;
 using WebApi.Aplication.Catalog.Queries;
+using WebApi.Extensions;
 using static Domain.Catalog.Catalog;
 
 namespace WebApi.Controllers

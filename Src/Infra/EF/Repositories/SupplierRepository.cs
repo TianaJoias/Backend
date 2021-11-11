@@ -5,7 +5,7 @@ namespace Infra.EF.Repositories
 {
     public class SupplierRepository : RepositoryBase<Supplier>, ISupplierRepository
     {
-        public SupplierRepository(IUnitOfWork unitOfWork, TianaJoiasContextDB context) : base(unitOfWork, context)
+        public SupplierRepository(IUnitOfWork unitOfWork, ProductContextDB context) : base(unitOfWork, context)
         { }
     }
 }

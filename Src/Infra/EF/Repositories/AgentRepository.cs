@@ -5,7 +5,7 @@ namespace Infra.EF.Repositories
 {
     public class AgentRepository : RepositoryBase<Agent>, IAgentRepository
     {
-        public AgentRepository(IUnitOfWork unitOfWork, TianaJoiasContextDB context) : base(unitOfWork, context)
+        public AgentRepository(IUnitOfWork unitOfWork, ProductContextDB context) : base(unitOfWork, context)
         {
         }
     }

@@ -5,7 +5,7 @@ namespace Infra.EF.Repositories
 {
     public class AccountRepository : RepositoryBase<Account>, IAccountRepository
     {
-        public AccountRepository(IUnitOfWork unitOfWork, TianaJoiasContextDB context) : base(unitOfWork, context)
+        public AccountRepository(IUnitOfWork unitOfWork, ProductContextDB context) : base(unitOfWork, context)
         { }
     }
 }

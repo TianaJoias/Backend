@@ -1,9 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
-using System.Net.Mime;
 using Microsoft.AspNetCore.Mvc.Abstractions;
-using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using WebApi.Controllers;
@@ -79,37 +77,6 @@ namespace WebApi.Extensions
             };
 
             return newParameter;
-        }
-    }
-
-    public class JsonQueryOperationFilter : IOperationFilter
-    {
-
-        public void Apply(OpenApiOperation operation, OperationFilterContext context)
-        {
-            var jsonQueryParams = context.ApiDescription.ActionDescriptor.Parameters
-                .Where(ad => ad.BindingInfo.BinderType == typeof(SortQueryBinder))
-                .Select(ad => ad.Name)
-                .ToList();
-
-            if (!jsonQueryParams.Any())
-            {
-                return;
-            }
-
-            foreach (var p in operation.Parameters.Where(p => jsonQueryParams.Contains(p.Name)))
-            {
-                // move the schema under application/json content type
-                p.Content = new Dictionary<string, OpenApiMediaType>()
-                {
-                    [MediaTypeNames.Application.Json] = new OpenApiMediaType()
-                    {
-                        Schema = p.Schema
-                    }
-                };
-                // then clear it
-                p.Schema = null;
-            }
         }
     }
 }

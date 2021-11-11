@@ -47,7 +47,6 @@ namespace WebApi.Extensions
             options.OperationFilter<SwaggerDefaultValues>();
             options.OperationFilter<CultureFilter>();
             options.OperationFilter<UnauthorizedFilter>();
-            options.OperationFilter<JsonQueryOperationFilter>();
             options.OperationFilter<NotFoundFilter>();
             options.OperationFilter<FromQueryModelFilter>();
             // integrate xml comments

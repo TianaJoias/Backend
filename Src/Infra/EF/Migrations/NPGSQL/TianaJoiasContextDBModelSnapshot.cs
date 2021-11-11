@@ -8,7 +8,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace Infra.EF.Migrations.NPGSQL
 {
-    [DbContext(typeof(TianaJoiasContextDB))]
+    [DbContext(typeof(ProductContextDB))]
     partial class TianaJoiasContextDBModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)

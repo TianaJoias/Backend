@@ -9,7 +9,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace Infra.EF.Migrations.NPGSQL
 {
-    [DbContext(typeof(TianaJoiasContextDB))]
+    [DbContext(typeof(ProductContextDB))]
     [Migration("20210213175507_INITAL")]
     partial class INITAL
     {
